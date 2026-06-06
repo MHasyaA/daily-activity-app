@@ -47,7 +47,7 @@ export default function LoginPage() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[120px]" />
 
       <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8 transform transition-all animate-in fade-in zoom-in-95 duration-300">
-        
+
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-8">
           <div className="p-3 bg-sky-500 rounded-2xl text-white shadow-lg shadow-sky-500/20 mb-3.5">
@@ -128,7 +128,7 @@ export default function LoginPage() {
         {/* Footer info */}
         <div className="mt-6 text-center pt-2">
           <p className="text-xs text-slate-500">
-            PT Internal Tool &copy; {new Date().getFullYear()}
+            PT Smartek Inovasi Sistem &copy; {new Date().getFullYear()}
           </p>
         </div>
       </div>
