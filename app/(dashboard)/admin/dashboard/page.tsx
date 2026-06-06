@@ -87,6 +87,7 @@ export default function AdminDashboardPage() {
     { value: 'IT Operations', label: 'IT Operations' },
     { value: 'HRD', label: 'HRD' },
     { value: 'Finance', label: 'Finance' },
+    { value: 'Marketing', label: 'Marketing' },
   ];
 
   return (

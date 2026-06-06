@@ -21,6 +21,7 @@ export default function RegisterPage() {
     { value: 'IT Operations', label: 'IT Operations' },
     { value: 'HRD', label: 'HRD' },
     { value: 'Finance', label: 'Finance' },
+    { value: 'Marketing', label: 'Marketing' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -106,6 +106,7 @@ export default function AdminReportPage() {
     { value: 'IT Operations', label: 'IT Operations' },
     { value: 'HRD', label: 'HRD' },
     { value: 'Finance', label: 'Finance' },
+    { value: 'Marketing', label: 'Marketing' },
   ];
 
   // Dynamic CSV download URL

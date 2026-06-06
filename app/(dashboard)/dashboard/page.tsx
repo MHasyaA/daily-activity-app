@@ -125,6 +125,13 @@ export default async function DashboardPage({
         status: activity.status,
         totalPlanHours,
         totalActualHours,
+        items: activity.actualItems.map(item => ({
+          id: item.id,
+          description: item.description,
+          startTime: item.startTime,
+          endTime: item.endTime,
+          category: item.category,
+        })),
       } : null,
     });
   }
@@ -216,18 +223,9 @@ export default async function DashboardPage({
             days={days}
             currentMonthLabel={currentMonthLabel}
             userId={targetUser?.id}
-            onPrevMonth={async () => {
-              'use server';
-              redirect(prevMonthUrl);
-            }}
-            onNextMonth={async () => {
-              'use server';
-              redirect(nextMonthUrl);
-            }}
-            onToday={async () => {
-              'use server';
-              redirect(todayUrl);
-            }}
+            prevMonthUrl={prevMonthUrl}
+            nextMonthUrl={nextMonthUrl}
+            todayUrl={todayUrl}
           />
         </div>
 
