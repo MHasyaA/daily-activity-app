@@ -133,16 +133,14 @@ export default async function DashboardPage({
           dailyOvertime = totalActualHours;
         } else {
           // Weekday (Mon-Fri)
-          const isDayHoliday = isHoliday || (activity?.status === 'LIBUR');
-          if (isDayHoliday) {
-            // Rule 3 (Option B): Weekday holiday/leave status
-            if (totalActualHours > 0) {
-              dailyOvertime = totalActualHours;
-            } else {
-              dailyOvertime = -8;
-            }
+          if (isHoliday) {
+            // National Holiday: working counts as overtime, not working is 0
+            dailyOvertime = totalActualHours;
+          } else if (activity?.status === 'LIBUR') {
+            // Personal leave on a weekday: deducts 8 hours of overtime
+            dailyOvertime = -8;
           } else {
-            // Rule 1: Normal weekday
+            // Normal workday
             dailyOvertime = totalActualHours > 8 ? totalActualHours - 8 : 0;
           }
         }
