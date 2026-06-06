@@ -15,7 +15,7 @@ import {
 import { id } from 'date-fns/locale';
 import Topbar from '@/components/layout/Topbar';
 import MonthCalendar, { CalendarDay } from '@/components/dashboard/MonthCalendar';
-import { Calendar as CalendarIcon, MapPin, Home, BarChart3, CheckCircle2 } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Home, CheckCircle2 } from 'lucide-react';
 import { calculateDuration } from '@/lib/utils';
 
 export default async function DashboardPage({

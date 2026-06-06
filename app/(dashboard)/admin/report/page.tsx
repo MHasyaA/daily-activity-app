@@ -5,12 +5,10 @@ import Link from 'next/link';
 import { format, startOfMonth } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { 
-  BarChart, 
   Calendar, 
   Filter, 
   Download, 
   Loader2, 
-  Users, 
   FileSpreadsheet,
   AlertCircle
 } from 'lucide-react';

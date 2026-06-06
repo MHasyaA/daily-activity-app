@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Clock, HelpCircle } from 'lucide-react';
+import { X, Clock } from 'lucide-react';
 import { calculateDuration } from '@/lib/utils';
 import { ActivityItemData } from './ActivityItemCard';
 
@@ -154,7 +154,7 @@ export default function ActivityItemForm({
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as any)}
+              onChange={(e) => setCategory(e.target.value as 'MEETING' | 'TASK' | 'REVIEW' | 'TRAINING' | 'OTHER')}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-sm font-semibold text-slate-700 outline-none transition-all"
             >
               <option value="TASK">Tugas / Pengerjaan Projek</option>

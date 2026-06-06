@@ -2,11 +2,12 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import { Prisma, Status } from '@prisma/client';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import Topbar from '@/components/layout/Topbar';
 import Link from 'next/link';
-import { Download, Calendar, Filter, FileText, ChevronRight } from 'lucide-react';
+import { Download, Calendar, FileText, ChevronRight } from 'lucide-react';
 import { calculateDuration, formatHours } from '@/lib/utils';
 
 export default async function HistoryPage({
@@ -43,7 +44,7 @@ export default async function HistoryPage({
   }
 
   // Build prisma query clause
-  const whereClause: any = {
+  const whereClause: Prisma.ActivityWhereInput = {
     userId: session.user.id,
     date: {
       gte: startDate,
@@ -52,7 +53,7 @@ export default async function HistoryPage({
   };
 
   if (statusParam !== 'ALL') {
-    whereClause.status = statusParam;
+    whereClause.status = statusParam as Status;
   }
 
   if (q) {

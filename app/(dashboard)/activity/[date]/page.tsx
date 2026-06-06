@@ -123,7 +123,7 @@ export default function ActivityDetailPage() {
   };
 
   // Handle note save
-  const handleSaveNote = async () => {
+  const handleSaveNote = useCallback(async () => {
     if (!activity) return;
     setSaving(true);
     try {
@@ -141,7 +141,7 @@ export default function ActivityDetailPage() {
     } finally {
       setSaving(false);
     }
-  };
+  }, [activity, note]);
 
   // Auto-save note after delay (debouncing note save)
   useEffect(() => {
@@ -152,7 +152,7 @@ export default function ActivityDetailPage() {
     }, 1500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [note, activity]);
+  }, [note, activity, handleSaveNote]);
 
   // Add/Edit Activity Item
   const handleSaveItem = async (itemData: Omit<ActivityItemData, 'id' | 'activityId'> & { id?: string }) => {

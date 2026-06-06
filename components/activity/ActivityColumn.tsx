@@ -18,7 +18,6 @@ interface ActivityColumnProps {
 
 export default function ActivityColumn({
   title,
-  type,
   items,
   onAddItemClick,
   onEditItem,

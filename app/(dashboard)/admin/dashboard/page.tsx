@@ -12,9 +12,7 @@ import {
   Loader2, 
   Calendar, 
   Filter, 
-  AlertCircle, 
-  CheckCircle,
-  Clock
+  CheckCircle
 } from 'lucide-react';
 import Topbar from '@/components/layout/Topbar';
 import { calculateDuration, formatHours } from '@/lib/utils';

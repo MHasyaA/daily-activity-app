@@ -8,7 +8,6 @@ import {
   History, 
   Users, 
   BarChart, 
-  User, 
   LogOut, 
   Calendar 
 } from 'lucide-react';
@@ -20,7 +19,6 @@ export default function Sidebar() {
   const isManagerOrAdmin = 
     session?.user?.role === 'ADMIN' || 
     session?.user?.role === 'MANAGER';
-  const isAdmin = session?.user?.role === 'ADMIN';
 
   const menuItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },

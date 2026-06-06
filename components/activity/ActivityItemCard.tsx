@@ -1,6 +1,6 @@
 'use client';
 
-import { Edit2, Trash2, Clock, CheckCircle } from 'lucide-react';
+import { Edit2, Trash2, Clock } from 'lucide-react';
 import { calculateDuration, formatHours } from '@/lib/utils';
 
 export interface ActivityItemData {
