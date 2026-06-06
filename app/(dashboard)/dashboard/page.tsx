@@ -15,8 +15,9 @@ import {
 import { id } from 'date-fns/locale';
 import Topbar from '@/components/layout/Topbar';
 import MonthCalendar, { CalendarDay } from '@/components/dashboard/MonthCalendar';
-import { Calendar as CalendarIcon, MapPin, Home, CheckCircle2 } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Home, CheckCircle2, Clock } from 'lucide-react';
 import { calculateDuration } from '@/lib/utils';
+import { isIndonesianHoliday, getHolidayInfo } from '@/lib/holidays';
 
 export default async function DashboardPage({
   searchParams,
@@ -87,6 +88,9 @@ export default async function DashboardPage({
   let monthActualHours = 0;
   let wfoCount = 0;
   let wfhCount = 0;
+  let monthOvertimeHours = 0;
+
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
   for (let i = 0; i < daysDiff; i++) {
     const currentDate = addDays(calendarStart, i);
@@ -94,6 +98,13 @@ export default async function DashboardPage({
     const dayOfWeek = currentDate.getDay(); // 0 = Sun, 6 = Sat
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     const isCurrentMonth = currentDate.getMonth() === monthVal;
+
+    // Check if future day
+    const startOfCurrentDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+    const isFutureDay = startOfCurrentDay > startOfToday;
+
+    const isHoliday = isIndonesianHoliday(currentDate);
+    const holidayName = getHolidayInfo(currentDate);
 
     // Find if user has logged daily activity
     const activity = activities.find(act => format(new Date(act.date), 'yyyy-MM-dd') === dateStr);
@@ -107,11 +118,36 @@ export default async function DashboardPage({
       : 0;
 
     // Accumulate metrics for current month only
-    if (activity && isCurrentMonth) {
-      monthPlanHours += totalPlanHours;
-      monthActualHours += totalActualHours;
-      if (activity.status === 'WFO') wfoCount++;
-      if (activity.status === 'WFH') wfhCount++;
+    if (isCurrentMonth) {
+      if (activity) {
+        monthPlanHours += totalPlanHours;
+        monthActualHours += totalActualHours;
+        if (activity.status === 'WFO') wfoCount++;
+        if (activity.status === 'WFH') wfhCount++;
+      }
+
+      // Calculate overtime only if not in the future
+      if (!isFutureDay) {
+        let dailyOvertime = 0;
+        if (isWeekend) {
+          dailyOvertime = totalActualHours;
+        } else {
+          // Weekday (Mon-Fri)
+          const isDayHoliday = isHoliday || (activity?.status === 'LIBUR');
+          if (isDayHoliday) {
+            // Rule 3 (Option B): Weekday holiday/leave status
+            if (totalActualHours > 0) {
+              dailyOvertime = totalActualHours;
+            } else {
+              dailyOvertime = -8;
+            }
+          } else {
+            // Rule 1: Normal weekday
+            dailyOvertime = totalActualHours > 8 ? totalActualHours - 8 : 0;
+          }
+        }
+        monthOvertimeHours += dailyOvertime;
+      }
     }
 
     days.push({
@@ -120,6 +156,8 @@ export default async function DashboardPage({
       dayNumber: currentDate.getDate(),
       isCurrentMonth,
       isWeekend,
+      isHoliday,
+      holidayName,
       activity: activity ? {
         id: activity.id,
         status: activity.status,
@@ -171,7 +209,7 @@ export default async function DashboardPage({
         )}
         
         {/* Quick Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {/* Plan hours card */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
             <div className="p-3 bg-purple-50 rounded-xl text-purple-600">
@@ -191,6 +229,19 @@ export default async function DashboardPage({
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Actual Bulan Ini</p>
               <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{monthActualHours.toFixed(1)} jam</h3>
+            </div>
+          </div>
+
+          {/* Overtime card */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-amber-50 rounded-xl text-amber-600">
+              <Clock size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lembur Bulan Ini</p>
+              <h3 className="text-base font-extrabold text-slate-800 mt-0.5">
+                {monthOvertimeHours >= 0 ? '+' : ''}{monthOvertimeHours.toFixed(1)} jam
+              </h3>
             </div>
           </div>
 

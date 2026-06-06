@@ -17,6 +17,8 @@ export interface CalendarDay {
   dayNumber: number;
   isCurrentMonth: boolean;
   isWeekend: boolean;
+  isHoliday?: boolean;
+  holidayName?: string | null;
   activity?: {
     id: string;
     status: 'WFO' | 'WFH' | 'LIBUR';
@@ -127,14 +129,15 @@ export default function MonthCalendar({
               className={`bg-white min-h-[80px] sm:min-h-[110px] p-1.5 sm:p-3 transition-all duration-200 hover:bg-slate-50/50 flex flex-col justify-between group ${
                 day.isCurrentMonth ? '' : 'bg-slate-50/30'
               }`}
+              title={day.holidayName || undefined}
             >
               {/* Day Number and Weekend styling */}
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start gap-1">
                 <span 
                   className={`text-xs font-bold leading-none ${
                     !day.isCurrentMonth
                       ? 'text-slate-300'
-                      : day.isWeekend
+                      : (day.isWeekend || day.isHoliday)
                       ? 'text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-lg'
                       : 'text-slate-700'
                   }`}
@@ -142,8 +145,15 @@ export default function MonthCalendar({
                   {day.dayNumber}
                 </span>
 
+                {/* Holiday label for desktop */}
+                {day.isHoliday && day.isCurrentMonth && (
+                  <span className="hidden md:inline-block text-[8px] font-bold text-rose-500 truncate max-w-[70%] leading-none text-right">
+                    {day.holidayName}
+                  </span>
+                )}
+
                 {/* Quick Add Button on Hover */}
-                {!hasActivity && (
+                {!hasActivity && !day.isHoliday && (
                   <span className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 bg-slate-100 rounded text-slate-400 hover:text-sky-600 hover:bg-slate-200">
                     <Plus size={10} />
                   </span>
