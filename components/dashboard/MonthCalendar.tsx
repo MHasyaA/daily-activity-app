@@ -84,7 +84,8 @@ export default function MonthCalendar({
               index === 0 || index === 6 ? 'text-rose-500' : 'text-slate-400'
             }`}
           >
-            {wd}
+            <span className="hidden sm:inline">{wd}</span>
+            <span className="sm:hidden">{wd.substring(0, 3)}</span>
           </span>
         ))}
       </div>
@@ -98,23 +99,23 @@ export default function MonthCalendar({
           let statusBadge = null;
           if (activity?.status === 'WFO') {
             statusBadge = (
-              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100">
+              <span className="inline-flex items-center gap-0.5 px-1 sm:px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-100" title="WFO">
                 <MapPin size={9} />
-                WFO
+                <span className="hidden sm:inline">WFO</span>
               </span>
             );
           } else if (activity?.status === 'WFH') {
             statusBadge = (
-              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+              <span className="inline-flex items-center gap-0.5 px-1 sm:px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100" title="WFH">
                 <Home size={9} />
-                WFH
+                <span className="hidden sm:inline">WFH</span>
               </span>
             );
           } else if (activity?.status === 'LIBUR') {
             statusBadge = (
-              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+              <span className="inline-flex items-center gap-0.5 px-1 sm:px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200" title="Libur">
                 <Palmtree size={9} />
-                Libur
+                <span className="hidden sm:inline">Libur</span>
               </span>
             );
           }
@@ -123,7 +124,7 @@ export default function MonthCalendar({
             <Link
               key={day.dateStr}
               href={`/activity/${day.dateStr}${userId ? `?userId=${userId}` : ''}`}
-              className={`bg-white min-h-[110px] p-3 transition-all duration-200 hover:bg-slate-50/50 flex flex-col justify-between group ${
+              className={`bg-white min-h-[80px] sm:min-h-[110px] p-1.5 sm:p-3 transition-all duration-200 hover:bg-slate-50/50 flex flex-col justify-between group ${
                 day.isCurrentMonth ? '' : 'bg-slate-50/30'
               }`}
             >
@@ -164,7 +165,7 @@ export default function MonthCalendar({
                     
                     {/* Activity descriptions list preview */}
                     {activity.status !== 'LIBUR' && activity.items && activity.items.length > 0 && (
-                      <div className="space-y-1 mt-1 pt-1 border-t border-slate-100/60 max-h-[48px] overflow-hidden">
+                      <div className="space-y-1 mt-1 pt-1 border-t border-slate-100/60 max-h-[48px] overflow-hidden hidden md:block">
                         {activity.items.slice(0, 2).map((item) => (
                           <div 
                             key={item.id} 

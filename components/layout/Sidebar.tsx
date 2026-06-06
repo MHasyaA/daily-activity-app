@@ -12,9 +12,12 @@ import {
   Calendar 
 } from 'lucide-react';
 
+import { useSidebar } from '@/components/providers';
+
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { isOpen, setIsOpen } = useSidebar();
 
   const isManagerOrAdmin = 
     session?.user?.role === 'ADMIN' || 
@@ -31,7 +34,9 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-slate-900 text-slate-100 flex flex-col h-screen fixed left-0 top-0 border-r border-slate-800 z-30">
+    <aside className={`w-64 bg-slate-900 text-slate-100 flex flex-col h-screen fixed top-0 bottom-0 border-r border-slate-800 z-30 transition-transform duration-300 md:translate-x-0 ${
+      isOpen ? 'translate-x-0' : '-translate-x-full'
+    } left-0`}>
       {/* Brand Header */}
       <div className="h-16 flex items-center px-6 border-b border-slate-800 gap-3">
         <div className="p-2 bg-sky-500 rounded-lg text-white">
@@ -56,6 +61,7 @@ export default function Sidebar() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    onClick={() => setIsOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive
                         ? 'bg-sky-600 text-white font-semibold shadow-md shadow-sky-600/20'
@@ -84,6 +90,7 @@ export default function Sidebar() {
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      onClick={() => setIsOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                         isActive
                           ? 'bg-sky-600 text-white font-semibold shadow-md shadow-sky-600/20'

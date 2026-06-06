@@ -246,7 +246,7 @@ export default function ActivityDetailPage() {
     <>
       <Topbar title={targetUser ? `Aktivitas Harian: ${targetUser.name}` : "Detail Aktivitas Harian"} />
 
-      <div className="p-8 space-y-6 max-w-7xl mx-auto pb-24">
+      <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto pb-24">
         
         {/* Admin Viewing Banner */}
         {targetUser && (
@@ -266,27 +266,27 @@ export default function ActivityDetailPage() {
         )}
 
         {/* Navigation & Presence Selector Header */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             
             {/* Date Nav */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 w-full md:w-auto justify-between md:justify-start">
               <button
                 onClick={() => router.push(`/activity/${prevDateStr}${userId ? `?userId=${userId}` : ''}`)}
-                className="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-slate-600 transition-colors shadow-sm"
+                className="p-2 sm:p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-slate-600 transition-colors shadow-sm"
               >
                 <ChevronLeft size={18} />
               </button>
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tanggal Laporan</span>
-                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mt-0.5">
-                  <Calendar size={18} className="text-slate-400" />
-                  {formattedDayFull}
+              <div className="text-center md:text-left flex-1 md:flex-initial">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tanggal Laporan</span>
+                <h2 className="text-sm sm:text-lg font-bold text-slate-800 flex items-center justify-center md:justify-start gap-1.5 sm:gap-2 mt-0.5">
+                  <Calendar size={16} className="text-slate-400 shrink-0" />
+                  <span className="line-clamp-1">{formattedDayFull}</span>
                 </h2>
               </div>
               <button
                 onClick={() => router.push(`/activity/${nextDateStr}${userId ? `?userId=${userId}` : ''}`)}
-                className="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-slate-600 transition-colors shadow-sm"
+                className="p-2 sm:p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-slate-600 transition-colors shadow-sm"
               >
                 <ChevronRight size={18} />
               </button>
@@ -345,7 +345,7 @@ export default function ActivityDetailPage() {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-4 max-w-md">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-md">
                 <button
                   onClick={() => handleStatusChange('WFO')}
                   className={`py-3 px-4 rounded-xl border font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
@@ -451,7 +451,7 @@ export default function ActivityDetailPage() {
             </div>
 
             {/* Note Area */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
               <div className="flex justify-between items-center">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Catatan Harian / Kendala Hari Ini
