@@ -1,0 +1,75 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          String      @id @default(cuid())
+  name        String
+  email       String      @unique
+  password    String      // hashed dengan bcrypt
+  role        Role        @default(EMPLOYEE)
+  division    String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  activities  Activity[]
+}
+
+enum Role {
+  EMPLOYEE
+  MANAGER
+  ADMIN
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @db.Date    // satu record per user per tanggal
+  status    Status
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planItems   ActivityItem[] @relation("PlanItems")
+  actualItems ActivityItem[] @relation("ActualItems")
+
+  @@unique([userId, date])   // 1 user hanya boleh 1 record per hari
+}
+
+enum Status {
+  WFO
+  WFH
+  LIBUR
+}
+
+model ActivityItem {
+  id          String   @id @default(cuid())
+  startTime   String   // format "HH:MM", misal "08:00"
+  endTime     String   // format "HH:MM", misal "11:00"
+  description String
+  category    Category @default(OTHER)
+  type        ItemType // PLAN atau ACTUAL
+  activityId  String
+
+  planActivity   Activity? @relation("PlanItems", fields: [activityId], references: [id], onDelete: Cascade, map: "ActivityItem_plan_activityId_fkey")
+  actualActivity Activity? @relation("ActualItems", fields: [activityId], references: [id], onDelete: Cascade, map: "ActivityItem_actual_activityId_fkey")
+}
+
+enum Category {
+  MEETING
+  TASK
+  REVIEW
+  TRAINING
+  OTHER
+}
+
+enum ItemType {
+  PLAN
+  ACTUAL
+}
