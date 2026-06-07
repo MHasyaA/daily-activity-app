@@ -24,6 +24,7 @@ export interface CalendarDay {
     status: 'WFO' | 'WFH' | 'LIBUR';
     totalPlanHours: number;
     totalActualHours: number;
+    previewType?: 'PLAN' | 'ACTUAL';
     items?: { id: string; description: string; startTime: string; endTime: string; category: string }[];
   } | null;
 }
@@ -176,13 +177,16 @@ export default function MonthCalendar({
                     {/* Activity descriptions list preview */}
                     {activity.status !== 'LIBUR' && activity.items && activity.items.length > 0 && (
                       <div className="space-y-1 mt-1 pt-1 border-t border-slate-100/60 max-h-[48px] overflow-hidden hidden md:block">
-                        {activity.items.slice(0, 2).map((item) => (
+                         {activity.items.slice(0, 2).map((item) => (
                           <div 
                             key={item.id} 
                             className="text-[9px] text-slate-400 font-medium truncate leading-tight hover:text-slate-600 transition-colors"
                             title={`${item.startTime}-${item.endTime}: ${item.description}`}
                           >
-                            • {item.description}
+                            • <span className="font-bold text-[8px] text-slate-500 mr-0.5">
+                              {activity.previewType === 'PLAN' ? 'Plan' : 'Actual'}
+                            </span>{' '}
+                            {item.description}
                           </div>
                         ))}
                         {activity.items.length > 2 && (

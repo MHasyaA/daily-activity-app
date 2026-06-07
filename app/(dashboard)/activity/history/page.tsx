@@ -20,6 +20,10 @@ export default async function HistoryPage({
     redirect('/login');
   }
 
+  if (session.user.role === 'ADMIN') {
+    redirect('/admin/overview');
+  }
+
   const currentYear = new Date().getFullYear();
   const monthParam = searchParams.month || '';
   const yearParam = searchParams.year || currentYear.toString();

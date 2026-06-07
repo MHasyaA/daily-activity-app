@@ -29,6 +29,10 @@ export default async function DashboardPage({
     redirect('/login');
   }
 
+  if (session.user.role === 'ADMIN') {
+    redirect('/admin/overview');
+  }
+
   // Determine target user
   let targetUserId = session.user.id;
   let targetUser = null;
@@ -148,6 +152,13 @@ export default async function DashboardPage({
       }
     }
 
+    const hasActualItems = activity && activity.actualItems && activity.actualItems.length > 0;
+    const hasPlanItems = activity && activity.planItems && activity.planItems.length > 0;
+    const previewItems = hasActualItems
+      ? activity.actualItems
+      : (hasPlanItems ? activity.planItems : []);
+    const previewType = hasActualItems ? 'ACTUAL' : (hasPlanItems ? 'PLAN' : undefined);
+
     days.push({
       date: currentDate,
       dateStr,
@@ -161,7 +172,8 @@ export default async function DashboardPage({
         status: activity.status,
         totalPlanHours,
         totalActualHours,
-        items: activity.actualItems.map(item => ({
+        previewType,
+        items: previewItems.map(item => ({
           id: item.id,
           description: item.description,
           startTime: item.startTime,

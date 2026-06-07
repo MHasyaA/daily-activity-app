@@ -19,14 +19,19 @@ export default function Sidebar() {
   const { data: session } = useSession();
   const { isOpen, setIsOpen } = useSidebar();
 
+  const isAdmin = session?.user?.role === 'ADMIN';
   const isManagerOrAdmin = 
-    session?.user?.role === 'ADMIN' || 
+    isAdmin || 
     session?.user?.role === 'MANAGER';
 
-  const menuItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'History', href: '/activity/history', icon: History },
-  ];
+  const menuItems = isAdmin
+    ? [
+        { name: 'Overview', href: '/admin/overview', icon: LayoutDashboard },
+      ]
+    : [
+        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { name: 'History', href: '/activity/history', icon: History },
+      ];
 
   const adminItems = [
     { name: 'Team Dashboard', href: '/admin/dashboard', icon: Users },
