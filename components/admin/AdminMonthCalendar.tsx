@@ -123,7 +123,7 @@ export default function AdminMonthCalendar({
             <button
               key={day.dateStr}
               onClick={() => onDateClick(day.date, day.activities)}
-              className={`bg-white min-h-[110px] sm:min-h-[150px] p-1.5 sm:p-3 transition-all duration-200 hover:bg-slate-50/70 flex flex-col justify-between text-left group ${
+              className={`bg-white min-h-[130px] sm:min-h-[175px] lg:min-h-[210px] p-2 sm:p-3 transition-all duration-200 hover:bg-slate-50/70 flex flex-col justify-between text-left group ${
                 day.isCurrentMonth ? '' : 'bg-slate-50/30'
               }`}
               title={day.holidayName || undefined}
@@ -158,7 +158,7 @@ export default function AdminMonthCalendar({
               </div>
 
               {/* Status Badges or Employee List */}
-              <div className="mt-2 space-y-1 w-full flex-1 flex flex-col justify-end">
+              <div className="mt-2 space-y-1.5 w-full flex-1 flex flex-col justify-start">
                 {totalLogs > 0 ? (
                   <>
                     {/* Compact Pills for stats */}
@@ -184,32 +184,50 @@ export default function AdminMonthCalendar({
                     </div>
 
                     {/* Employee list snippet for larger screens */}
-                    <div className="hidden md:block space-y-0.5 max-h-[66px] overflow-hidden pt-1 border-t border-slate-100/60">
-                      {day.activities.slice(0, 3).map((act) => (
-                        <div
-                          key={act.id}
-                          className={`text-[8px] font-semibold truncate leading-none py-0.5 px-1 rounded flex justify-between ${
-                            act.status === 'WFO'
-                              ? 'bg-blue-50/60 text-blue-800'
-                              : act.status === 'WFH'
-                              ? 'bg-emerald-50/60 text-emerald-800'
-                              : 'bg-slate-50/60 text-slate-600'
-                          }`}
-                        >
-                          <span>{getShortName(act.user.name)}</span>
-                          <span className="font-extrabold text-[7px] ml-1 uppercase">{act.status}</span>
-                        </div>
-                      ))}
-                      {totalLogs > 3 && (
-                        <div className="text-[7px] text-sky-600 font-extrabold leading-none mt-0.5">
-                          +{totalLogs - 3} karyawan lainnya
+                    <div className="hidden md:block space-y-1 w-full pt-1.5 border-t border-slate-100/60">
+                      {day.activities.slice(0, 4).map((act) => {
+                        const hasActual = act.actualItems && act.actualItems.length > 0;
+                        const hasPlan = act.planItems && act.planItems.length > 0;
+                        let activityDesc = '';
+                        if (act.status === 'LIBUR') {
+                          activityDesc = 'Libur / Cuti';
+                        } else if (hasActual) {
+                          activityDesc = `[Act] ${act.actualItems[0].description}`;
+                        } else if (hasPlan) {
+                          activityDesc = `[Plan] ${act.planItems[0].description}`;
+                        } else {
+                          activityDesc = 'Belum isi detail';
+                        }
+
+                        return (
+                          <div
+                            key={act.id}
+                            className={`text-[9px] font-medium truncate leading-normal py-1 px-1.5 rounded-lg flex flex-col gap-0.5 ${
+                              act.status === 'WFO'
+                                ? 'bg-blue-50/60 text-blue-800 border border-blue-100/30'
+                                : act.status === 'WFH'
+                                ? 'bg-emerald-50/60 text-emerald-800 border border-emerald-100/30'
+                                : 'bg-slate-50 text-slate-600 border border-slate-150'
+                            }`}
+                          >
+                            <div className="flex justify-between items-center font-bold text-[8px] tracking-wide">
+                              <span className="truncate max-w-[75%]">{getShortName(act.user.name)}</span>
+                              <span className="text-[7px] opacity-75">{act.status}</span>
+                            </div>
+                            <span className="text-[8px] truncate opacity-85 font-normal leading-none">{activityDesc}</span>
+                          </div>
+                        );
+                      })}
+                      {totalLogs > 4 && (
+                        <div className="text-[8px] text-sky-600 font-extrabold leading-none pt-0.5">
+                          +{totalLogs - 4} karyawan lainnya
                         </div>
                       )}
                     </div>
                   </>
                 ) : (
                   day.isCurrentMonth && (
-                    <span className="hidden sm:inline-block text-[8px] text-slate-300 font-medium italic">
+                    <span className="hidden sm:inline-block text-[9px] text-slate-350 font-medium italic mt-1">
                       Belum ada laporan
                     </span>
                   )

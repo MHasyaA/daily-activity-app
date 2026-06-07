@@ -141,7 +141,9 @@ function AdminOverviewContent() {
       completionRate,
       wfoCount: totalWfo,
       wfhCount: totalWfh,
-      liburCount: totalLibur
+      liburCount: totalLibur,
+      actualLoggedCount,
+      totalPossibleLogs
     };
   }, [days, allUsers]);
 
@@ -222,63 +224,134 @@ function AdminOverviewContent() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm animate-pulse h-[88px]" />
+              <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm animate-pulse h-[142px]" />
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {/* Total Employees */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="p-3 bg-purple-50 rounded-xl text-purple-600">
-                <Users size={20} />
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-50 rounded-xl text-purple-600">
+                  <Users size={24} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Karyawan</p>
+                  <h4 className="text-2xl font-black text-slate-800 mt-0.5">
+                    {stats.totalEmployees} <span className="text-xs font-bold text-slate-400">orang</span>
+                  </h4>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Karyawan</p>
-                <h4 className="text-base font-extrabold text-slate-800 mt-0.5">{stats.totalEmployees} orang</h4>
-              </div>
+              <p className="text-[10px] text-slate-400 font-medium mt-3 border-t border-slate-100 pt-2">
+                Aktif terdaftar di sistem
+              </p>
             </div>
 
             {/* Total Fill Rate */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="p-3 bg-sky-50 rounded-xl text-sky-600">
-                <CheckCircle size={20} />
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-sky-50 rounded-xl text-sky-600">
+                  <CheckCircle size={24} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tingkat Pengisian</p>
+                  <h4 className="text-2xl font-black text-slate-800 mt-0.5">
+                    {stats.completionRate.toFixed(0)}%
+                  </h4>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tingkat Pengisian</p>
-                <h4 className="text-base font-extrabold text-slate-800 mt-0.5">{stats.completionRate.toFixed(0)}%</h4>
+              <div className="mt-3 border-t border-slate-100 pt-2">
+                <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1">
+                  <span>Log dilaporkan</span>
+                  <span>{stats.actualLoggedCount} / {stats.totalPossibleLogs}</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5">
+                  <div 
+                    className="bg-sky-500 h-1.5 rounded-full transition-all duration-500" 
+                    style={{ width: `${stats.completionRate}%` }} 
+                  />
+                </div>
               </div>
             </div>
 
             {/* Total WFO */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
-                <MapPin size={20} />
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
+                  <MapPin size={24} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFO</p>
+                  <h4 className="text-2xl font-black text-slate-800 mt-0.5">
+                    {stats.wfoCount} <span className="text-xs font-bold text-slate-400">log</span>
+                  </h4>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFO</p>
-                <h4 className="text-base font-extrabold text-slate-800 mt-0.5">{stats.wfoCount} log</h4>
+              <div className="mt-3 border-t border-slate-100 pt-2">
+                <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1">
+                  <span>Persentase WFO</span>
+                  <span>{stats.actualLoggedCount > 0 ? ((stats.wfoCount / stats.actualLoggedCount) * 100).toFixed(0) : 0}%</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5">
+                  <div 
+                    className="bg-blue-500 h-1.5 rounded-full transition-all duration-500" 
+                    style={{ width: `${stats.actualLoggedCount > 0 ? (stats.wfoCount / stats.actualLoggedCount) * 100 : 0}%` }} 
+                  />
+                </div>
               </div>
             </div>
 
             {/* Total WFH */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
-                <Home size={20} />
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+                  <Home size={24} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFH</p>
+                  <h4 className="text-2xl font-black text-slate-800 mt-0.5">
+                    {stats.wfhCount} <span className="text-xs font-bold text-slate-400">log</span>
+                  </h4>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFH</p>
-                <h4 className="text-base font-extrabold text-slate-800 mt-0.5">{stats.wfhCount} log</h4>
+              <div className="mt-3 border-t border-slate-100 pt-2">
+                <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1">
+                  <span>Persentase WFH</span>
+                  <span>{stats.actualLoggedCount > 0 ? ((stats.wfhCount / stats.actualLoggedCount) * 100).toFixed(0) : 0}%</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5">
+                  <div 
+                    className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" 
+                    style={{ width: `${stats.actualLoggedCount > 0 ? (stats.wfhCount / stats.actualLoggedCount) * 100 : 0}%` }} 
+                  />
+                </div>
               </div>
             </div>
 
             {/* Total Off / Cuti */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="p-3 bg-slate-100 rounded-xl text-slate-500">
-                <Palmtree size={20} />
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-slate-100 rounded-xl text-slate-500">
+                  <Palmtree size={24} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Cuti/Libur</p>
+                  <h4 className="text-2xl font-black text-slate-800 mt-0.5">
+                    {stats.liburCount} <span className="text-xs font-bold text-slate-400">log</span>
+                  </h4>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Cuti/Libur</p>
-                <h4 className="text-base font-extrabold text-slate-800 mt-0.5">{stats.liburCount} log</h4>
+              <div className="mt-3 border-t border-slate-100 pt-2">
+                <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1">
+                  <span>Persentase Libur</span>
+                  <span>{stats.actualLoggedCount > 0 ? ((stats.liburCount / stats.actualLoggedCount) * 100).toFixed(0) : 0}%</span>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5">
+                  <div 
+                    className="bg-slate-400 h-1.5 rounded-full transition-all duration-500" 
+                    style={{ width: `${stats.actualLoggedCount > 0 ? (stats.liburCount / stats.actualLoggedCount) * 100 : 0}%` }} 
+                  />
+                </div>
               </div>
             </div>
           </div>
