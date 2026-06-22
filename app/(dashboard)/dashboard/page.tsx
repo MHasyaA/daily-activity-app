@@ -30,7 +30,7 @@ export default async function DashboardPage({
     redirect('/login');
   }
 
-  if (session.user.role === 'ADMIN') {
+  if (session.user.role === 'ADMIN' && !searchParams.userId) {
     redirect('/admin/overview');
   }
 
@@ -95,8 +95,6 @@ export default async function DashboardPage({
   let wfhCount = 0;
   let monthOvertimeHours = 0;
 
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
   for (let i = 0; i < daysDiff; i++) {
     const currentDate = addDays(calendarStart, i);
     const dateStr = format(currentDate, 'yyyy-MM-dd');
@@ -104,9 +102,6 @@ export default async function DashboardPage({
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     const isCurrentMonth = currentDate.getMonth() === monthVal;
 
-    // Check if future day
-    const startOfCurrentDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-    const isFutureDay = startOfCurrentDay > startOfToday;
 
     const isHoliday = isIndonesianHoliday(currentDate);
     const holidayName = getHolidayInfo(currentDate);
@@ -129,12 +124,6 @@ export default async function DashboardPage({
         monthActualHours += totalActualHours;
         if (activity.status === 'WFO') wfoCount++;
         if (activity.status === 'WFH') wfhCount++;
-      }
-
-      // Calculate overtime only if not in the future (logika baru)
-      if (!isFutureDay) {
-        const dailyOvertime = totalActualHours > totalPlanHours ? totalActualHours - totalPlanHours : 0;
-        monthOvertimeHours += dailyOvertime;
       }
     }
 
@@ -169,6 +158,8 @@ export default async function DashboardPage({
       } : null,
     });
   }
+
+  monthOvertimeHours = monthActualHours > monthPlanHours ? monthActualHours - monthPlanHours : 0;
 
   // Calculate category distributions for the month
   const categoryHours: Record<string, number> = {
@@ -228,14 +219,10 @@ export default async function DashboardPage({
 
   let yearPlanHours = 0;
   let yearActualHours = 0;
-  let yearOvertimeHours = 0;
   let yearWfoCount = 0;
   let yearWfhCount = 0;
 
   for (const act of yearlyActivities) {
-    const actDate = new Date(act.date);
-    const isFutureAct = actDate > startOfToday;
-
     const planH = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
     const actualH = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
 
@@ -244,12 +231,9 @@ export default async function DashboardPage({
 
     if (act.status === 'WFO') yearWfoCount++;
     if (act.status === 'WFH') yearWfhCount++;
-
-    if (!isFutureAct) {
-      const dailyOvertime = actualH > planH ? actualH - planH : 0;
-      yearOvertimeHours += dailyOvertime;
-    }
   }
+
+  const yearOvertimeHours = yearActualHours > yearPlanHours ? yearActualHours - yearPlanHours : 0;
 
   // Next and Prev month links
   const prevMonthDate = new Date(yearVal, monthVal - 1, 1);

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, differenceInDays } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
@@ -437,7 +438,12 @@ function AdminOverviewContent() {
                             {user.name.substring(0, 2).toUpperCase()}
                           </div>
                           <div>
-                            <h4 className="font-extrabold text-sm text-slate-800">{user.name}</h4>
+                            <Link
+                              href={`/dashboard?userId=${user.id}`}
+                              className="font-extrabold text-sm text-sky-600 hover:text-sky-700 hover:underline transition-colors block"
+                            >
+                              {user.name}
+                            </Link>
                             <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
                               {user.division || 'Umum'} • {user.email}
                             </p>
