@@ -15,7 +15,7 @@ export async function PATCH(
   const { id } = params;
 
   try {
-    const { status, note } = await req.json();
+    const { status, note, managerNotes } = await req.json();
 
     // Verify ownership
     const existingActivity = await prisma.activity.findUnique({
@@ -26,16 +26,29 @@ export async function PATCH(
       return NextResponse.json({ error: 'Activity not found' }, { status: 404 });
     }
 
-    if (existingActivity.userId !== session.user.id) {
+    const isOwner = existingActivity.userId === session.user.id;
+    const isManagerOrAdmin = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
+
+    if (!isOwner && !isManagerOrAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const dataToUpdate: {
+      status?: 'WFO' | 'WFH' | 'LIBUR';
+      note?: string | null;
+      managerNotes?: string | null;
+    } = {};
+    if (isOwner) {
+      if (status !== undefined) dataToUpdate.status = status;
+      if (note !== undefined) dataToUpdate.note = note;
+    }
+    if (isManagerOrAdmin) {
+      if (managerNotes !== undefined) dataToUpdate.managerNotes = managerNotes;
     }
 
     const activity = await prisma.activity.update({
       where: { id },
-      data: {
-        ...(status && { status }),
-        ...(note !== undefined && { note }),
-      },
+      data: dataToUpdate,
     });
 
     return NextResponse.json({ activity });

@@ -26,6 +26,7 @@ interface ActivityData {
   id: string;
   status: 'WFO' | 'WFH' | 'LIBUR';
   note: string | null;
+  managerNotes: string | null;
   planItems: ActivityItemData[];
   actualItems: ActivityItemData[];
 }
@@ -46,6 +47,7 @@ export default function ActivityDetailPage() {
   const [targetUser, setTargetUser] = useState<{ name: string } | null>(null);
   const [status, setStatus] = useState<'WFO' | 'WFH' | 'LIBUR' | ''>('');
   const [note, setNote] = useState('');
+  const [managerNotes, setManagerNotes] = useState('');
 
   const isViewingOthers = !!userId && session?.user?.id !== userId;
   
@@ -75,10 +77,12 @@ export default function ActivityDetailPage() {
         setActivity(data.activity);
         setStatus(data.activity.status);
         setNote(data.activity.note || '');
+        setManagerNotes(data.activity.managerNotes || '');
       } else {
         setActivity(null);
         setStatus('');
         setNote('');
+        setManagerNotes('');
       }
       if (data.targetUser) {
         setTargetUser(data.targetUser);
@@ -143,6 +147,27 @@ export default function ActivityDetailPage() {
     }
   }, [activity, note]);
 
+  // Handle manager note save
+  const handleSaveManagerNotes = useCallback(async () => {
+    if (!activity) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/activity/${activity.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ managerNotes }),
+      });
+      const data = await res.json();
+      if (data.activity) {
+        setActivity(prev => prev ? { ...prev, managerNotes: data.activity.managerNotes } : null);
+      }
+    } catch (err) {
+      console.error('Error saving manager notes:', err);
+    } finally {
+      setSaving(false);
+    }
+  }, [activity, managerNotes]);
+
   // Auto-save note after delay (debouncing note save)
   useEffect(() => {
     if (!activity || note === (activity.note || '')) return;
@@ -153,6 +178,17 @@ export default function ActivityDetailPage() {
 
     return () => clearTimeout(delayDebounceFn);
   }, [note, activity, handleSaveNote]);
+
+  // Auto-save managerNotes after delay (debouncing managerNotes save)
+  useEffect(() => {
+    if (!activity || managerNotes === (activity.managerNotes || '')) return;
+    
+    const delayDebounceFn = setTimeout(() => {
+      handleSaveManagerNotes();
+    }, 1500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [managerNotes, activity, handleSaveManagerNotes]);
 
   // Add/Edit Activity Item
   const handleSaveItem = async (itemData: Omit<ActivityItemData, 'id' | 'activityId'> & { id?: string }) => {
@@ -471,6 +507,34 @@ export default function ActivityDetailPage() {
                 disabled={isViewingOthers}
               />
             </div>
+
+            {/* Manager Notes Area */}
+            {(session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN' || managerNotes) && (
+              <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Catatan Manager / Feedback
+                  </label>
+                  {(session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN') && (
+                    <span className={`text-[10px] font-bold ${managerNotes.length > 500 ? 'text-rose-500' : 'text-slate-400'}`}>
+                      {managerNotes.length}/500
+                    </span>
+                  )}
+                </div>
+                <textarea
+                  value={managerNotes}
+                  onChange={(e) => setManagerNotes(e.target.value)}
+                  placeholder={
+                    (session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN')
+                      ? "Tuliskan catatan, arahan, atau feedback untuk planning/actual karyawan ini..."
+                      : "Belum ada catatan dari manager"
+                  }
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-sm font-medium text-slate-700 outline-none transition-all min-h-[90px] max-h-[160px]"
+                  maxLength={500}
+                  disabled={session?.user?.role !== 'MANAGER' && session?.user?.role !== 'ADMIN'}
+                />
+              </div>
+            )}
 
           </div>
         ) : (
