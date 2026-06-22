@@ -30,7 +30,7 @@ export default async function DashboardPage({
     redirect('/login');
   }
 
-  if (session.user.role === 'ADMIN' && !searchParams.userId) {
+  if ((session.user.role === 'ADMIN' || session.user.role === 'MANAGER') && !searchParams.userId) {
     redirect('/admin/overview');
   }
 
