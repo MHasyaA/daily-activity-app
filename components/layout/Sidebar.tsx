@@ -24,7 +24,7 @@ export default function Sidebar() {
     isAdmin || 
     session?.user?.role === 'MANAGER';
 
-  const menuItems = isAdmin
+  const menuItems = isManagerOrAdmin
     ? [
         { name: 'Overview', href: '/admin/overview', icon: LayoutDashboard },
       ]

@@ -58,6 +58,46 @@ function AdminOverviewContent() {
   const [selectedDateActivities, setSelectedDateActivities] = useState<ActivityData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Inline Feedback State
+  const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [savingFeedback, setSavingFeedback] = useState(false);
+
+  const handleSaveFeedback = async (activityId: string) => {
+    setSavingFeedback(true);
+    try {
+      const res = await fetch(`/api/activity/${activityId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ managerNotes: feedbackText }),
+      });
+      if (res.ok) {
+        // Update local activities state
+        setActivities((prev) =>
+          prev.map((act) =>
+            act.id === activityId ? { ...act, managerNotes: feedbackText } : act
+          )
+        );
+        // Update selectedDateActivities state
+        setSelectedDateActivities((prev) =>
+          prev.map((act) =>
+            act.id === activityId ? { ...act, managerNotes: feedbackText } : act
+          )
+        );
+        setEditingActivityId(null);
+      } else {
+        alert('Gagal menyimpan feedback. Silakan coba lagi.');
+      }
+    } catch (err) {
+      console.error('Error saving feedback:', err);
+      alert('Terjadi kesalahan jaringan.');
+    } finally {
+      setSavingFeedback(false);
+    }
+  };
+
   const fetchOverviewData = useCallback(async () => {
     setLoading(true);
     try {
@@ -561,6 +601,65 @@ function AdminOverviewContent() {
                           <div className="bg-rose-50/50 text-rose-700 border border-rose-100 rounded-xl p-3 font-medium">
                             {activity.note}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Manager Feedback */}
+                      {activity && (
+                        <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-slate-500 uppercase text-[9px] tracking-wider block">
+                              Catatan Manager / Feedback
+                            </span>
+                            {editingActivityId !== activity.id ? (
+                              <button
+                                onClick={() => {
+                                  setEditingActivityId(activity.id);
+                                  setFeedbackText(activity.managerNotes || '');
+                                }}
+                                className="text-[10px] font-bold text-sky-600 hover:text-sky-700 transition-colors flex items-center gap-1"
+                              >
+                                {activity.managerNotes ? 'Ubah Feedback' : 'Beri Feedback'}
+                              </button>
+                            ) : null}
+                          </div>
+
+                          {editingActivityId === activity.id ? (
+                            <div className="space-y-2">
+                              <textarea
+                                value={feedbackText}
+                                onChange={(e) => setFeedbackText(e.target.value)}
+                                placeholder="Tulis feedback atau catatan untuk hari ini..."
+                                className="w-full p-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all resize-y"
+                                rows={2}
+                              />
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={() => setEditingActivityId(null)}
+                                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold transition-all"
+                                  disabled={savingFeedback}
+                                >
+                                  Batal
+                                </button>
+                                <button
+                                  onClick={() => handleSaveFeedback(activity.id)}
+                                  className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-sm"
+                                  disabled={savingFeedback}
+                                >
+                                  {savingFeedback && <Loader2 size={10} className="animate-spin" />}
+                                  Simpan
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className={`p-3 rounded-xl font-medium ${
+                              activity.managerNotes 
+                                ? 'bg-sky-50/50 text-sky-800 border border-sky-100' 
+                                : 'bg-slate-50 text-slate-400 italic'
+                            }`}>
+                              {activity.managerNotes || 'Belum ada catatan manager.'}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
