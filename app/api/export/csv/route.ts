@@ -22,38 +22,65 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const startDate = startDateParam ? new Date(startDateParam) : undefined;
-    const endDate = endDateParam ? new Date(endDateParam) : undefined;
+    const today = new Date();
+    const startDefault = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endDefault = today;
 
+    const startDate = startDateParam ? new Date(startDateParam) : startDefault;
+    const endDate = endDateParam ? new Date(endDateParam) : endDefault;
+
+    // Reset times to prevent UTC mismatch
+    const sDate = new Date(startDate);
+    sDate.setHours(0, 0, 0, 0);
+    const eDate = new Date(endDate);
+    eDate.setHours(0, 0, 0, 0);
+
+    const dates: Date[] = [];
+    const curr = new Date(sDate);
+    while (curr <= eDate) {
+      dates.push(new Date(curr));
+      curr.setDate(curr.getDate() + 1);
+    }
+
+    // Get all users matching criteria
+    const users = await prisma.user.findMany({
+      where: {
+        role: 'EMPLOYEE',
+        isActive: true,
+        ...(targetUserId && { id: targetUserId }),
+        ...(division && { division }),
+      },
+      select: {
+        id: true,
+        name: true,
+        division: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    // Fetch activities for all relevant users in the date range
     const activities = await prisma.activity.findMany({
       where: {
-        ...(targetUserId && { userId: targetUserId }),
-        ...(startDate && endDate && {
-          date: {
-            gte: startDate,
-            lte: endDate,
-          },
-        }),
+        date: {
+          gte: sDate,
+          lte: eDate,
+        },
         user: {
+          isActive: true,
+          role: 'EMPLOYEE',
+          ...(targetUserId && { id: targetUserId }),
           ...(division && { division }),
         },
       },
       include: {
-        user: {
-          select: {
-            name: true,
-            division: true,
-          },
-        },
         planItems: {
           orderBy: { startTime: 'asc' },
         },
         actualItems: {
           orderBy: { startTime: 'asc' },
         },
-      },
-      orderBy: {
-        date: 'desc',
       },
     });
 
@@ -71,46 +98,93 @@ export async function GET(req: NextRequest) {
       'Jam Selesai',
       'Kategori',
       'Deskripsi',
-      'Catatan Harian'
+      'Catatan Harian',
+      'Lemburan (Jam)',
+      'Catatan Manager'
     ].map(val => `"${val.replace(/"/g, '""')}"`).join(','));
 
-    for (const act of activities) {
-      const formattedDate = format(new Date(act.date), 'yyyy-MM-dd');
-      const presenceStatus = act.status;
-      const note = act.note || '';
+    // Helper function to calculate duration in hours
+    const calculateDuration = (startTime: string, endTime: string): number => {
+      if (!startTime || !endTime) return 0;
+      const [startH, startM] = startTime.split(':').map(Number);
+      const [endH, endM] = endTime.split(':').map(Number);
+      if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return 0;
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+      if (endMinutes <= startMinutes) return 0;
+      return (endMinutes - startMinutes) / 60;
+    };
 
-      const items = [
-        ...act.planItems.map(item => ({ ...item, typeLabel: 'PLAN' })),
-        ...act.actualItems.map(item => ({ ...item, typeLabel: 'ACTUAL' })),
-      ].sort((a, b) => a.typeLabel.localeCompare(b.typeLabel) || a.startTime.localeCompare(b.startTime));
+    for (const u of users) {
+      for (const d of dates) {
+        const formattedDate = format(d, 'yyyy-MM-dd');
+        // Find activity for user on date
+        const act = activities.find(a => a.userId === u.id && format(new Date(a.date), 'yyyy-MM-dd') === formattedDate);
 
-      if (items.length === 0) {
-        csvRows.push([
-          act.user.name,
-          act.user.division || '',
-          formattedDate,
-          presenceStatus,
-          '-',
-          '-',
-          '-',
-          '-',
-          '-',
-          note
-        ].map(val => `"${val.replace(/"/g, '""')}"`).join(','));
-      } else {
-        for (const item of items) {
+        if (!act) {
+          // Empty row
           csvRows.push([
-            act.user.name,
-            act.user.division || '',
+            u.name,
+            u.division || '',
             formattedDate,
-            presenceStatus,
-            item.typeLabel,
-            item.startTime,
-            item.endTime,
-            item.category,
-            item.description,
-            note
-          ].map(val => `"${val.toString().replace(/"/g, '""')}"`).join(','));
+            'Belum Isi',
+            '-',
+            '-',
+            '-',
+            '-',
+            '-',
+            '-',
+            '0',
+            '-'
+          ].map(val => `"${val.replace(/"/g, '""')}"`).join(','));
+        } else {
+          const presenceStatus = act.status;
+          const note = act.note || '';
+          const mNotes = act.managerNotes || '';
+
+          // Calculate overtime
+          const planHours = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
+          const actualHours = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
+          const overtime = actualHours > planHours ? (actualHours - planHours).toFixed(1) : '0';
+
+          const items = [
+            ...act.planItems.map(item => ({ ...item, typeLabel: 'PLAN' })),
+            ...act.actualItems.map(item => ({ ...item, typeLabel: 'ACTUAL' })),
+          ].sort((a, b) => a.typeLabel.localeCompare(b.typeLabel) || a.startTime.localeCompare(b.startTime));
+
+          if (items.length === 0) {
+            csvRows.push([
+              u.name,
+              u.division || '',
+              formattedDate,
+              presenceStatus,
+              '-',
+              '-',
+              '-',
+              '-',
+              '-',
+              note,
+              overtime,
+              mNotes
+            ].map(val => `"${val.replace(/"/g, '""')}"`).join(','));
+          } else {
+            for (const item of items) {
+              csvRows.push([
+                u.name,
+                u.division || '',
+                formattedDate,
+                presenceStatus,
+                item.typeLabel,
+                item.startTime,
+                item.endTime,
+                item.category,
+                item.description,
+                note,
+                overtime,
+                mNotes
+              ].map(val => `"${val.toString().replace(/"/g, '""')}"`).join(','));
+            }
+          }
         }
       }
     }

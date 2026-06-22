@@ -32,6 +32,7 @@ model Activity {
   date      DateTime @db.Date    // satu record per user per tanggal
   status    Status
   note      String?
+  managerNotes String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

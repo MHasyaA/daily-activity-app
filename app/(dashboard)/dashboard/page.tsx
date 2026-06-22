@@ -15,6 +15,7 @@ import {
 import { id } from 'date-fns/locale';
 import Topbar from '@/components/layout/Topbar';
 import MonthCalendar, { CalendarDay } from '@/components/dashboard/MonthCalendar';
+import CategoryPieChart from '@/components/dashboard/CategoryPieChart';
 import { Calendar as CalendarIcon, MapPin, Home, CheckCircle2, Clock } from 'lucide-react';
 import { calculateDuration } from '@/lib/utils';
 import { isIndonesianHoliday, getHolidayInfo } from '@/lib/holidays';
@@ -130,24 +131,9 @@ export default async function DashboardPage({
         if (activity.status === 'WFH') wfhCount++;
       }
 
-      // Calculate overtime only if not in the future
+      // Calculate overtime only if not in the future (logika baru)
       if (!isFutureDay) {
-        let dailyOvertime = 0;
-        if (isWeekend) {
-          dailyOvertime = totalActualHours;
-        } else {
-          // Weekday (Mon-Fri)
-          if (isHoliday) {
-            // National Holiday: working counts as overtime, not working is 0
-            dailyOvertime = totalActualHours;
-          } else if (activity?.status === 'LIBUR') {
-            // Personal leave on a weekday: deducts 8 hours of overtime
-            dailyOvertime = -8;
-          } else {
-            // Normal workday
-            dailyOvertime = totalActualHours > 8 ? totalActualHours - 8 : 0;
-          }
-        }
+        const dailyOvertime = totalActualHours > totalPlanHours ? totalActualHours - totalPlanHours : 0;
         monthOvertimeHours += dailyOvertime;
       }
     }
@@ -184,6 +170,87 @@ export default async function DashboardPage({
     });
   }
 
+  // Calculate category distributions for the month
+  const categoryHours: Record<string, number> = {
+    MEETING: 0,
+    TASK: 0,
+    REVIEW: 0,
+    TRAINING: 0,
+    OTHER: 0,
+  };
+  let totalActualWithCategories = 0;
+  activities.forEach(act => {
+    const actDate = new Date(act.date);
+    if (actDate.getMonth() === monthVal && actDate.getFullYear() === yearVal && act.status !== 'LIBUR') {
+      act.actualItems.forEach(item => {
+        const duration = calculateDuration(item.startTime, item.endTime);
+        const cat = item.category || 'OTHER';
+        if (categoryHours[cat] !== undefined) {
+          categoryHours[cat] += duration;
+        } else {
+          categoryHours['OTHER'] += duration;
+        }
+        totalActualWithCategories += duration;
+      });
+    }
+  });
+
+  const pieChartData = Object.entries(categoryHours).map(([category, hours]) => {
+    const percentage = totalActualWithCategories > 0 ? (hours / totalActualWithCategories) * 100 : 0;
+    return {
+      category,
+      hours,
+      percentage,
+    };
+  }).filter(item => item.hours > 0);
+
+  // Fetch yearly activities for Yearly Overview
+  const startOfYear = new Date(yearVal, 0, 1);
+  const endOfYear = new Date(yearVal, 11, 31, 23, 59, 59);
+
+  const yearlyActivities = await prisma.activity.findMany({
+    where: {
+      userId: targetUserId,
+      date: {
+        gte: startOfYear,
+        lte: endOfYear,
+      },
+    },
+    include: {
+      planItems: {
+        where: { type: 'PLAN' },
+      },
+      actualItems: {
+        where: { type: 'ACTUAL' },
+      },
+    },
+  });
+
+  let yearPlanHours = 0;
+  let yearActualHours = 0;
+  let yearOvertimeHours = 0;
+  let yearWfoCount = 0;
+  let yearWfhCount = 0;
+
+  for (const act of yearlyActivities) {
+    const actDate = new Date(act.date);
+    const isFutureAct = actDate > startOfToday;
+
+    const planH = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
+    const actualH = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
+
+    yearPlanHours += planH;
+    yearActualHours += actualH;
+
+    if (act.status === 'WFO') yearWfoCount++;
+    if (act.status === 'WFH') yearWfhCount++;
+
+    if (!isFutureAct) {
+      const dailyOvertime = actualH > planH ? actualH - planH : 0;
+      yearOvertimeHours += dailyOvertime;
+    }
+  }
+
   // Next and Prev month links
   const prevMonthDate = new Date(yearVal, monthVal - 1, 1);
   const nextMonthDate = new Date(yearVal, monthVal + 1, 1);
@@ -218,63 +285,137 @@ export default async function DashboardPage({
           </div>
         )}
         
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {/* Plan hours card */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-purple-50 rounded-xl text-purple-600">
-              <CalendarIcon size={20} />
+        {/* Yearly Overview Section */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Overview Tahunan ({yearVal})</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {/* Plan hours card */}
+            <div className="bg-slate-50/50 rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center gap-4 hover:bg-white transition-all">
+              <div className="p-3 bg-purple-50 rounded-xl text-purple-600">
+                <CalendarIcon size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Plan Tahun Ini</p>
+                <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{yearPlanHours.toFixed(1)} jam</h3>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Plan Bulan Ini</p>
-              <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{monthPlanHours.toFixed(1)} jam</h3>
+
+            {/* Actual hours card */}
+            <div className="bg-slate-50/50 rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center gap-4 hover:bg-white transition-all">
+              <div className="p-3 bg-sky-50 rounded-xl text-sky-600">
+                <CheckCircle2 size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Actual Tahun Ini</p>
+                <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{yearActualHours.toFixed(1)} jam</h3>
+              </div>
+            </div>
+
+            {/* Overtime card */}
+            <div className="bg-slate-50/50 rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center gap-4 hover:bg-white transition-all">
+              <div className="p-3 bg-amber-50 rounded-xl text-amber-600">
+                <Clock size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lembur Tahun Ini</p>
+                <h3 className="text-base font-extrabold text-slate-800 mt-0.5">
+                  +{yearOvertimeHours.toFixed(1)} jam
+                </h3>
+              </div>
+            </div>
+
+            {/* WFO card */}
+            <div className="bg-slate-50/50 rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center gap-4 hover:bg-white transition-all">
+              <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
+                <MapPin size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kehadiran WFO</p>
+                <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{yearWfoCount} hari</h3>
+              </div>
+            </div>
+
+            {/* WFH card */}
+            <div className="bg-slate-50/50 rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center gap-4 hover:bg-white transition-all">
+              <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+                <Home size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kehadiran WFH</p>
+                <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{yearWfhCount} hari</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Monthly Overview & Pie Chart Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Monthly Stats Column */}
+          <div className="lg:col-span-2 space-y-3">
+            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Overview Bulanan ({currentMonthLabel})</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {/* Plan hours card */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+                <div className="p-3 bg-purple-50 rounded-xl text-purple-600">
+                  <CalendarIcon size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Plan Bulan Ini</p>
+                  <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{monthPlanHours.toFixed(1)} jam</h3>
+                </div>
+              </div>
+
+              {/* Actual hours card */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+                <div className="p-3 bg-sky-50 rounded-xl text-sky-600">
+                  <CheckCircle2 size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Actual Bulan Ini</p>
+                  <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{monthActualHours.toFixed(1)} jam</h3>
+                </div>
+              </div>
+
+              {/* Overtime card */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+                <div className="p-3 bg-amber-50 rounded-xl text-amber-600">
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lembur Bulan Ini</p>
+                  <h3 className="text-base font-extrabold text-slate-800 mt-0.5">
+                    +{monthOvertimeHours.toFixed(1)} jam
+                  </h3>
+                </div>
+              </div>
+
+              {/* WFO card */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+                <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
+                  <MapPin size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kehadiran WFO</p>
+                  <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{wfoCount} hari</h3>
+                </div>
+              </div>
+
+              {/* WFH card */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+                <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+                  <Home size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kehadiran WFH</p>
+                  <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{wfhCount} hari</h3>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Actual hours card */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-sky-50 rounded-xl text-sky-600">
-              <CheckCircle2 size={20} />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Actual Bulan Ini</p>
-              <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{monthActualHours.toFixed(1)} jam</h3>
-            </div>
-          </div>
-
-          {/* Overtime card */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-amber-50 rounded-xl text-amber-600">
-              <Clock size={20} />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lembur Bulan Ini</p>
-              <h3 className="text-base font-extrabold text-slate-800 mt-0.5">
-                {monthOvertimeHours >= 0 ? '+' : ''}{monthOvertimeHours.toFixed(1)} jam
-              </h3>
-            </div>
-          </div>
-
-          {/* WFO card */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
-              <MapPin size={20} />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kehadiran WFO</p>
-              <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{wfoCount} hari</h3>
-            </div>
-          </div>
-
-          {/* WFH card */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
-            <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
-              <Home size={20} />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kehadiran WFH</p>
-              <h3 className="text-base font-extrabold text-slate-800 mt-0.5">{wfhCount} hari</h3>
-            </div>
+          {/* Pie Chart Column */}
+          <div className="lg:col-span-1">
+            <CategoryPieChart data={pieChartData} title={`Persentase Kategori (${currentMonthLabel})`} />
           </div>
         </div>
 
