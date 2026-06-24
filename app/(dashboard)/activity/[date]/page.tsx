@@ -26,7 +26,7 @@ interface ActivityData {
   id: string;
   status: 'WFO' | 'WFH' | 'LIBUR';
   note: string | null;
-  attachment: string | null;
+  attachments: { id: string; url: string }[];
   managerNotes: string | null;
   planItems: ActivityItemData[];
   actualItems: ActivityItemData[];
@@ -48,7 +48,7 @@ export default function ActivityDetailPage() {
   const [targetUser, setTargetUser] = useState<{ name: string } | null>(null);
   const [status, setStatus] = useState<'WFO' | 'WFH' | 'LIBUR' | ''>('');
   const [note, setNote] = useState('');
-  const [attachment, setAttachment] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<{ id: string; url: string }[]>([]);
   const [managerNotes, setManagerNotes] = useState('');
 
   const isViewingOthers = !!userId && session?.user?.id !== userId;
@@ -79,13 +79,13 @@ export default function ActivityDetailPage() {
         setActivity(data.activity);
         setStatus(data.activity.status);
         setNote(data.activity.note || '');
-        setAttachment(data.activity.attachment || null);
+        setAttachments(data.activity.attachments || []);
         setManagerNotes(data.activity.managerNotes || '');
       } else {
         setActivity(null);
         setStatus('');
         setNote('');
-        setAttachment(null);
+        setAttachments([]);
         setManagerNotes('');
       }
       if (data.targetUser) {
@@ -116,7 +116,6 @@ export default function ActivityDetailPage() {
           date: dateStr,
           status: newStatus,
           note: note,
-          attachment: attachment || undefined,
         }),
       });
       const data = await res.json();
@@ -152,20 +151,28 @@ export default function ActivityDetailPage() {
     }
   }, [activity, note]);
 
-  // Handle attachment save
-  const handleSaveAttachment = async (base64Data: string | null) => {
+  // Handle adding an attachment
+  const handleAddAttachment = async (base64Data: string) => {
     if (!activity) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/activity/${activity.id}`, {
-        method: 'PATCH',
+      const res = await fetch('/api/activity/attachments', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attachment: base64Data }),
+        body: JSON.stringify({ 
+          activityId: activity.id,
+          attachment: base64Data 
+        }),
       });
       const data = await res.json();
-      if (data.activity) {
-        setActivity(prev => prev ? { ...prev, attachment: data.activity.attachment } : null);
-        setAttachment(data.activity.attachment || null);
+      if (res.ok && data.attachment) {
+        setAttachments(prev => [...prev, data.attachment]);
+        setActivity(prev => prev ? {
+          ...prev,
+          attachments: [...prev.attachments, data.attachment]
+        } : null);
+      } else {
+        alert(data.error || 'Gagal mengunggah gambar.');
       }
     } catch (err) {
       console.error('Error saving attachment:', err);
@@ -174,8 +181,36 @@ export default function ActivityDetailPage() {
     }
   };
 
+  // Handle deleting an attachment
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    if (!confirm('Hapus lampiran gambar ini?')) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/activity/attachments/${attachmentId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setAttachments(prev => prev.filter(att => att.id !== attachmentId));
+        setActivity(prev => prev ? {
+          ...prev,
+          attachments: prev.attachments.filter(att => att.id !== attachmentId)
+        } : null);
+      } else {
+        alert('Gagal menghapus gambar.');
+      }
+    } catch (err) {
+      console.error('Error deleting attachment:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Process image with compression
   const processImageFile = async (file: File) => {
+    if (attachments.length >= 5) {
+      alert('Maksimal 5 lampiran gambar diperbolehkan.');
+      return;
+    }
     setSaving(true);
     try {
       const imageCompression = (await import('browser-image-compression')).default;
@@ -191,7 +226,7 @@ export default function ActivityDetailPage() {
       reader.readAsDataURL(compressedFile);
       reader.onloadend = () => {
         const base64data = reader.result as string;
-        handleSaveAttachment(base64data);
+        handleAddAttachment(base64data);
       };
     } catch (err) {
       console.error('Error compressing image:', err);
@@ -586,58 +621,66 @@ export default function ActivityDetailPage() {
               />
 
               {/* Attachment Section */}
-              <div className="border-t border-slate-100 pt-4 space-y-2">
-                <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Lampiran Bukti Kerja / Screenshot
-                </span>
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Lampiran Bukti Kerja / Screenshot ({attachments.length}/5)
+                  </span>
+                </div>
                 
-                {attachment ? (
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-slate-50 p-3.5 border border-slate-200 rounded-xl max-w-lg">
-                    <a 
-                      href={attachment} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="relative h-20 w-28 overflow-hidden rounded-lg border border-slate-200 shrink-0 cursor-pointer group"
-                    >
-                      <img src={attachment} alt="Pratinjau Bukti" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-black/25 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-white">
-                        Buka
-                      </div>
-                    </a>
-                    <div className="space-y-1.5">
-                      <p className="text-xs text-slate-500 font-semibold">Berhasil dikompres & diunggah</p>
-                      {!isViewingOthers && (
-                        <button
-                          type="button"
-                          onClick={() => handleSaveAttachment(null)}
-                          className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 text-[10px] font-bold rounded-lg transition-colors"
+                {/* Image Thumbnails Grid */}
+                {attachments.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                    {attachments.map((att, idx) => (
+                      <div key={att.id} className="relative group bg-slate-50 p-1.5 border border-slate-200 rounded-xl flex flex-col items-center">
+                        <a 
+                          href={att.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="relative h-20 w-full overflow-hidden rounded-lg border border-slate-200 cursor-pointer group"
                         >
-                          Hapus Gambar
-                        </button>
-                      )}
+                          <img src={att.url} alt={`Bukti ${idx + 1}`} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                          <div className="absolute inset-0 bg-black/25 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-white">
+                            Buka
+                          </div>
+                        </a>
+                        {!isViewingOthers && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAttachment(att.id)}
+                            className="mt-1.5 w-full py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 text-[9px] font-bold rounded-lg transition-colors"
+                          >
+                            Hapus
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload Button */}
+                {!isViewingOthers && attachments.length < 5 && (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <label className="px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-250 hover:border-slate-350 text-slate-600 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm w-fit text-center">
+                        Pilih File Gambar
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="hidden"
+                          disabled={attachments.length >= 5}
+                        />
+                      </label>
+                      <span className="text-[10px] text-slate-400 font-semibold">
+                        Atau tekan Ctrl+V (Paste) gambar screenshot langsung di kotak catatan.
+                      </span>
                     </div>
                   </div>
-                ) : (
-                  !isViewingOthers ? (
-                    <div className="space-y-2">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                        <label className="px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-250 hover:border-slate-350 text-slate-600 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm w-fit text-center">
-                          Pilih File Gambar
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="hidden"
-                          />
-                        </label>
-                        <span className="text-[10px] text-slate-400 font-semibold">
-                          Atau tekan Ctrl+V (Paste) gambar screenshot langsung di kotak catatan.
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-400 font-medium italic">Tidak ada lampiran gambar.</p>
-                  )
+                )}
+
+                {isViewingOthers && attachments.length === 0 && (
+                  <p className="text-xs text-slate-400 font-medium italic">Tidak ada lampiran gambar.</p>
                 )}
               </div>
             </div>

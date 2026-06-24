@@ -37,7 +37,7 @@ interface ActivityData {
   date: string;
   status: 'WFO' | 'WFH' | 'LIBUR';
   note: string | null;
-  attachment: string | null;
+  attachments: { id: string; url: string }[];
   user: {
     name: string;
     email: string;
@@ -294,16 +294,22 @@ export default function AdminReportPage() {
                         <td className="px-6 py-4 max-w-xs text-xs text-slate-500 font-normal">
                           <div className="flex flex-col gap-1">
                             <span className="truncate block text-slate-600">{act.note || '-'}</span>
-                            {act.attachment && (
-                              <a 
-                                href={act.attachment} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="inline-flex items-center gap-1 text-sky-600 hover:text-sky-700 font-bold hover:underline mt-0.5"
-                              >
-                                <Paperclip size={11} className="shrink-0" />
-                                Lihat Lampiran
-                              </a>
+                            {act.attachments && act.attachments.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mt-1">
+                                {act.attachments.map((att, idx) => (
+                                  <a 
+                                    key={att.id}
+                                    href={att.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="inline-flex items-center gap-0.5 text-sky-600 hover:text-sky-700 font-bold hover:underline"
+                                    title={`Buka Lampiran ${idx + 1}`}
+                                  >
+                                    <Paperclip size={10} className="shrink-0" />
+                                    <span>Bukti #{idx + 1}</span>
+                                  </a>
+                                ))}
+                              </div>
                             )}
                           </div>
                         </td>

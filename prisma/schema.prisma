@@ -32,14 +32,14 @@ model Activity {
   date      DateTime @db.Date    // satu record per user per tanggal
   status    Status
   note      String?
-  attachment Bytes?
   managerNotes String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   planItems   ActivityItem[] @relation("PlanItems")
   actualItems ActivityItem[] @relation("ActualItems")
+  attachments Attachment[]
 
   @@unique([userId, date])   // 1 user hanya boleh 1 record per hari
 }
@@ -77,4 +77,12 @@ enum Category {
 enum ItemType {
   PLAN
   ACTUAL
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  activityId String
+  data       Bytes    // raw compressed binary
+  createdAt  DateTime @default(now())
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
 }

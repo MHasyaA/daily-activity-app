@@ -56,12 +56,18 @@ export async function GET(req: NextRequest) {
           where: { type: 'ACTUAL' },
           orderBy: { startTime: 'asc' },
         },
+        attachments: {
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
 
     const serializedActivity = activity ? {
       ...activity,
-      attachment: activity.attachment ? `data:image/jpeg;base64,${Buffer.from(activity.attachment).toString('base64')}` : null,
+      attachments: activity.attachments.map(att => ({
+        id: att.id,
+        url: `data:image/jpeg;base64,${Buffer.from(att.data).toString('base64')}`,
+      })),
     } : null;
 
     return NextResponse.json({ activity: serializedActivity, targetUser });
@@ -78,7 +84,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { date: dateParam, status, note, attachment: attachmentBase64 } = await req.json();
+    const { date: dateParam, status, note } = await req.json();
 
     if (!dateParam || !status) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -86,19 +92,10 @@ export async function POST(req: NextRequest) {
 
     const date = new Date(dateParam);
 
-    let attachmentBuffer: Buffer | null = null;
-    if (attachmentBase64) {
-      const base64Data = attachmentBase64.replace(/^data:image\/\w+;base64,/, '');
-      attachmentBuffer = Buffer.from(base64Data, 'base64');
-    }
-
     const updateData: Prisma.ActivityUncheckedUpdateInput = {
       status,
       note,
     };
-    if (attachmentBase64 !== undefined) {
-      updateData.attachment = attachmentBuffer ? new Uint8Array(attachmentBuffer) : null;
-    }
 
     const createData: Prisma.ActivityUncheckedCreateInput = {
       userId: session.user.id,
@@ -106,9 +103,6 @@ export async function POST(req: NextRequest) {
       status,
       note,
     };
-    if (attachmentBuffer) {
-      createData.attachment = new Uint8Array(attachmentBuffer);
-    }
 
     const activity = await prisma.activity.upsert({
       where: {
@@ -119,11 +113,17 @@ export async function POST(req: NextRequest) {
       },
       update: updateData,
       create: createData,
+      include: {
+        attachments: true,
+      },
     });
 
     const serializedActivity = {
       ...activity,
-      attachment: attachmentBase64 || null,
+      attachments: activity.attachments.map(att => ({
+        id: att.id,
+        url: `data:image/jpeg;base64,${Buffer.from(att.data).toString('base64')}`,
+      })),
     };
 
     return NextResponse.json({ activity: serializedActivity });

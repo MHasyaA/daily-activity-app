@@ -593,7 +593,7 @@ function AdminOverviewContent() {
                       ) : null}
 
                       {/* Notes / Blocker */}
-                      {activity && (activity.note || activity.attachment) && (
+                      {activity && (activity.note || (activity.attachments && activity.attachments.length > 0)) && (
                         <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
                           <span className="font-bold text-slate-500 uppercase text-[9px] tracking-wider block">
                             Catatan & Bukti Kerja Karyawan
@@ -603,23 +603,27 @@ function AdminOverviewContent() {
                               {activity.note}
                             </div>
                           )}
-                          {activity.attachment && (
-                            <div className="bg-slate-50 p-2.5 border border-slate-200 rounded-xl max-w-sm">
-                              <a 
-                                href={activity.attachment} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="relative block overflow-hidden rounded-lg border border-slate-200 cursor-pointer group"
-                              >
-                                <img 
-                                  src={activity.attachment} 
-                                  alt="Bukti Kerja" 
-                                  className="max-h-48 object-contain w-full rounded-lg transition-transform group-hover:scale-102" 
-                                />
-                                <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center font-bold text-white text-[10px]">
-                                  Buka Gambar Penuh
+                          {activity.attachments && activity.attachments.length > 0 && (
+                            <div className="grid grid-cols-3 gap-3 max-w-md pt-1">
+                              {activity.attachments.map((att, idx) => (
+                                <div key={att.id} className="bg-slate-50 p-1.5 border border-slate-200 rounded-xl">
+                                  <a 
+                                    href={att.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="relative block h-16 overflow-hidden rounded-lg border border-slate-200 cursor-pointer group"
+                                  >
+                                    <img 
+                                      src={att.url} 
+                                      alt={`Bukti ${idx + 1}`} 
+                                      className="h-full w-full object-cover transition-transform group-hover:scale-105" 
+                                    />
+                                    <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center font-bold text-white text-[9px]">
+                                      Buka
+                                    </div>
+                                  </a>
                                 </div>
-                              </a>
+                              ))}
                             </div>
                           )}
                         </div>

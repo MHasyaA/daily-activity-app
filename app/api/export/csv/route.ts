@@ -82,6 +82,9 @@ export async function GET(req: NextRequest) {
         actualItems: {
           orderBy: { startTime: 'asc' },
         },
+        attachments: {
+          select: { id: true },
+        },
       },
     });
 
@@ -100,9 +103,14 @@ export async function GET(req: NextRequest) {
       'Kategori',
       'Deskripsi',
       'Catatan Harian',
+      'Lampiran Bukti (Link)',
       'Lemburan (Jam)',
       'Catatan Manager'
     ].map(val => `"${val.replace(/"/g, '""')}"`).join(','));
+
+    const host = req.headers.get('host') || 'localhost:3000';
+    const protocol = req.headers.get('x-forwarded-proto') || 'http';
+    const baseUrl = `${protocol}://${host}`;
 
 
 
@@ -125,6 +133,7 @@ export async function GET(req: NextRequest) {
             '-',
             '-',
             '-',
+            '-',
             '0',
             '-'
           ].map(val => `"${val.replace(/"/g, '""')}"`).join(','));
@@ -132,6 +141,10 @@ export async function GET(req: NextRequest) {
           const presenceStatus = act.status;
           const note = act.note || '';
           const mNotes = act.managerNotes || '';
+
+          const attachmentUrls = act.attachments && act.attachments.length > 0
+            ? act.attachments.map(att => `${baseUrl}/api/attachment/${att.id}`).join(' ; ')
+            : '-';
 
           // Calculate overtime
           const planHours = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
@@ -155,6 +168,7 @@ export async function GET(req: NextRequest) {
               '-',
               '-',
               note,
+              attachmentUrls,
               overtime,
               mNotes
             ].map(val => `"${val.replace(/"/g, '""')}"`).join(','));
@@ -171,6 +185,7 @@ export async function GET(req: NextRequest) {
                 item.category,
                 item.description,
                 note,
+                attachmentUrls,
                 overtime,
                 mNotes
               ].map(val => `"${val.toString().replace(/"/g, '""')}"`).join(','));

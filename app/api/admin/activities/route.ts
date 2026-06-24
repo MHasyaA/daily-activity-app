@@ -39,6 +39,9 @@ export async function GET(req: NextRequest) {
         actualItems: {
           where: { type: 'ACTUAL' },
         },
+        attachments: {
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
 
@@ -62,7 +65,10 @@ export async function GET(req: NextRequest) {
 
     const serializedActivities = activities.map(act => ({
       ...act,
-      attachment: act.attachment ? `data:image/jpeg;base64,${Buffer.from(act.attachment).toString('base64')}` : null,
+      attachments: act.attachments.map(att => ({
+        id: att.id,
+        url: `data:image/jpeg;base64,${Buffer.from(att.data).toString('base64')}`,
+      })),
     }));
 
     // Map users to their activity

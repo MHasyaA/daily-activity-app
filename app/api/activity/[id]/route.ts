@@ -16,7 +16,7 @@ export async function PATCH(
   const { id } = params;
 
   try {
-    const { status, note, managerNotes, attachment: attachmentBase64 } = await req.json();
+    const { status, note, managerNotes } = await req.json();
 
     // Verify ownership
     const existingActivity = await prisma.activity.findUnique({
@@ -38,14 +38,6 @@ export async function PATCH(
     if (isOwner) {
       if (status !== undefined) dataToUpdate.status = status;
       if (note !== undefined) dataToUpdate.note = note;
-      if (attachmentBase64 !== undefined) {
-        let attachmentBuffer: Buffer | null = null;
-        if (attachmentBase64) {
-          const base64Data = attachmentBase64.replace(/^data:image\/\w+;base64,/, '');
-          attachmentBuffer = Buffer.from(base64Data, 'base64');
-        }
-        dataToUpdate.attachment = attachmentBuffer ? new Uint8Array(attachmentBuffer) : null;
-      }
     }
     if (isManagerOrAdmin) {
       if (managerNotes !== undefined) dataToUpdate.managerNotes = managerNotes;
@@ -54,11 +46,17 @@ export async function PATCH(
     const activity = await prisma.activity.update({
       where: { id },
       data: dataToUpdate,
+      include: {
+        attachments: true,
+      },
     });
 
     const serializedActivity = {
       ...activity,
-      attachment: activity.attachment ? `data:image/jpeg;base64,${Buffer.from(activity.attachment).toString('base64')}` : null,
+      attachments: activity.attachments.map(att => ({
+        id: att.id,
+        url: `data:image/jpeg;base64,${Buffer.from(att.data).toString('base64')}`,
+      })),
     };
 
     return NextResponse.json({ activity: serializedActivity });
