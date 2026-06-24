@@ -20,7 +20,10 @@ export function calculateDuration(startTime: string, endTime: string): number {
   
   if (endMinutes <= startMinutes) return 0;
   
-  return (endMinutes - startMinutes) / 60;
+  // Potong otomatis jika ada irisan dengan jam istirahat 12:00 (720m) - 13:00 (780m)
+  const overlap = Math.max(0, Math.min(endMinutes, 780) - Math.max(startMinutes, 720));
+  
+  return (endMinutes - startMinutes - overlap) / 60;
 }
 
 /**

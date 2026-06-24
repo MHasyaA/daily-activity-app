@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
+import { calculateDuration } from '@/lib/utils';
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -103,17 +104,7 @@ export async function GET(req: NextRequest) {
       'Catatan Manager'
     ].map(val => `"${val.replace(/"/g, '""')}"`).join(','));
 
-    // Helper function to calculate duration in hours
-    const calculateDuration = (startTime: string, endTime: string): number => {
-      if (!startTime || !endTime) return 0;
-      const [startH, startM] = startTime.split(':').map(Number);
-      const [endH, endM] = endTime.split(':').map(Number);
-      if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return 0;
-      const startMinutes = startH * 60 + startM;
-      const endMinutes = endH * 60 + endM;
-      if (endMinutes <= startMinutes) return 0;
-      return (endMinutes - startMinutes) / 60;
-    };
+
 
     for (const u of users) {
       for (const d of dates) {

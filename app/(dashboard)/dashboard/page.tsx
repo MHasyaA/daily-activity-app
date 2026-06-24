@@ -168,6 +168,9 @@ export default async function DashboardPage({
     REVIEW: 0,
     TRAINING: 0,
     OTHER: 0,
+    FINANCE: 0,
+    MARKETING: 0,
+    LOGISTICS: 0,
   };
   let totalActualWithCategories = 0;
   activities.forEach(act => {

@@ -26,6 +26,7 @@ interface ActivityData {
   id: string;
   status: 'WFO' | 'WFH' | 'LIBUR';
   note: string | null;
+  attachment: string | null;
   managerNotes: string | null;
   planItems: ActivityItemData[];
   actualItems: ActivityItemData[];
@@ -47,6 +48,7 @@ export default function ActivityDetailPage() {
   const [targetUser, setTargetUser] = useState<{ name: string } | null>(null);
   const [status, setStatus] = useState<'WFO' | 'WFH' | 'LIBUR' | ''>('');
   const [note, setNote] = useState('');
+  const [attachment, setAttachment] = useState<string | null>(null);
   const [managerNotes, setManagerNotes] = useState('');
 
   const isViewingOthers = !!userId && session?.user?.id !== userId;
@@ -77,11 +79,13 @@ export default function ActivityDetailPage() {
         setActivity(data.activity);
         setStatus(data.activity.status);
         setNote(data.activity.note || '');
+        setAttachment(data.activity.attachment || null);
         setManagerNotes(data.activity.managerNotes || '');
       } else {
         setActivity(null);
         setStatus('');
         setNote('');
+        setAttachment(null);
         setManagerNotes('');
       }
       if (data.targetUser) {
@@ -112,6 +116,7 @@ export default function ActivityDetailPage() {
           date: dateStr,
           status: newStatus,
           note: note,
+          attachment: attachment || undefined,
         }),
       });
       const data = await res.json();
@@ -146,6 +151,78 @@ export default function ActivityDetailPage() {
       setSaving(false);
     }
   }, [activity, note]);
+
+  // Handle attachment save
+  const handleSaveAttachment = async (base64Data: string | null) => {
+    if (!activity) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/activity/${activity.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ attachment: base64Data }),
+      });
+      const data = await res.json();
+      if (data.activity) {
+        setActivity(prev => prev ? { ...prev, attachment: data.activity.attachment } : null);
+        setAttachment(data.activity.attachment || null);
+      }
+    } catch (err) {
+      console.error('Error saving attachment:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Process image with compression
+  const processImageFile = async (file: File) => {
+    setSaving(true);
+    try {
+      const imageCompression = (await import('browser-image-compression')).default;
+      const options = {
+        maxSizeMB: 0.1, // limit to 100KB
+        maxWidthOrHeight: 1000,
+        useWebWorker: true,
+      };
+      
+      const compressedFile = await imageCompression(file, options);
+      
+      const reader = new FileReader();
+      reader.readAsDataURL(compressedFile);
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        handleSaveAttachment(base64data);
+      };
+    } catch (err) {
+      console.error('Error compressing image:', err);
+      alert('Gagal memproses dan mengompresi gambar.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault(); // Prevent pasting the image binary as text in the textarea
+          processImageFile(file);
+          break;
+        }
+      }
+    }
+  };
 
   // Handle manager note save
   const handleSaveManagerNotes = useCallback(async () => {
@@ -487,7 +564,7 @@ export default function ActivityDetailPage() {
             </div>
 
             {/* Note Area */}
-            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <div className="flex justify-between items-center">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Catatan Harian / Kendala Hari Ini
@@ -501,11 +578,68 @@ export default function ActivityDetailPage() {
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
+                onPaste={!isViewingOthers ? handlePaste : undefined}
                 placeholder={isViewingOthers ? "Tidak ada catatan" : "Tuliskan kendala, blocker, atau catatan penting hari ini..."}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-sm font-medium text-slate-700 outline-none transition-all min-h-[90px] max-h-[160px]"
                 maxLength={500}
                 disabled={isViewingOthers}
               />
+
+              {/* Attachment Section */}
+              <div className="border-t border-slate-100 pt-4 space-y-2">
+                <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Lampiran Bukti Kerja / Screenshot
+                </span>
+                
+                {attachment ? (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-slate-50 p-3.5 border border-slate-200 rounded-xl max-w-lg">
+                    <a 
+                      href={attachment} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="relative h-20 w-28 overflow-hidden rounded-lg border border-slate-200 shrink-0 cursor-pointer group"
+                    >
+                      <img src={attachment} alt="Pratinjau Bukti" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-black/25 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-white">
+                        Buka
+                      </div>
+                    </a>
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-slate-500 font-semibold">Berhasil dikompres & diunggah</p>
+                      {!isViewingOthers && (
+                        <button
+                          type="button"
+                          onClick={() => handleSaveAttachment(null)}
+                          className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 text-[10px] font-bold rounded-lg transition-colors"
+                        >
+                          Hapus Gambar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  !isViewingOthers ? (
+                    <div className="space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-250 hover:border-slate-350 text-slate-600 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm w-fit text-center">
+                          Pilih File Gambar
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <span className="text-[10px] text-slate-400 font-semibold">
+                          Atau tekan Ctrl+V (Paste) gambar screenshot langsung di kotak catatan.
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 font-medium italic">Tidak ada lampiran gambar.</p>
+                  )
+                )}
+              </div>
             </div>
 
             {/* Manager Notes Area */}

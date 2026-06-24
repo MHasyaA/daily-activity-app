@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function PATCH(
   req: NextRequest,
@@ -15,7 +16,7 @@ export async function PATCH(
   const { id } = params;
 
   try {
-    const { status, note, managerNotes } = await req.json();
+    const { status, note, managerNotes, attachment: attachmentBase64 } = await req.json();
 
     // Verify ownership
     const existingActivity = await prisma.activity.findUnique({
@@ -33,14 +34,18 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const dataToUpdate: {
-      status?: 'WFO' | 'WFH' | 'LIBUR';
-      note?: string | null;
-      managerNotes?: string | null;
-    } = {};
+    const dataToUpdate: Prisma.ActivityUpdateInput = {};
     if (isOwner) {
       if (status !== undefined) dataToUpdate.status = status;
       if (note !== undefined) dataToUpdate.note = note;
+      if (attachmentBase64 !== undefined) {
+        let attachmentBuffer: Buffer | null = null;
+        if (attachmentBase64) {
+          const base64Data = attachmentBase64.replace(/^data:image\/\w+;base64,/, '');
+          attachmentBuffer = Buffer.from(base64Data, 'base64');
+        }
+        dataToUpdate.attachment = attachmentBuffer ? new Uint8Array(attachmentBuffer) : null;
+      }
     }
     if (isManagerOrAdmin) {
       if (managerNotes !== undefined) dataToUpdate.managerNotes = managerNotes;
@@ -51,7 +56,12 @@ export async function PATCH(
       data: dataToUpdate,
     });
 
-    return NextResponse.json({ activity });
+    const serializedActivity = {
+      ...activity,
+      attachment: activity.attachment ? `data:image/jpeg;base64,${Buffer.from(activity.attachment).toString('base64')}` : null,
+    };
+
+    return NextResponse.json({ activity: serializedActivity });
   } catch (error) {
     console.error('Error updating activity:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

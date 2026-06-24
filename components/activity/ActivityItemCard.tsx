@@ -8,7 +8,7 @@ export interface ActivityItemData {
   startTime: string;
   endTime: string;
   description: string;
-  category: 'MEETING' | 'TASK' | 'REVIEW' | 'TRAINING' | 'OTHER';
+  category: 'MEETING' | 'TASK' | 'REVIEW' | 'TRAINING' | 'OTHER' | 'FINANCE' | 'MARKETING' | 'LOGISTICS';
   type: 'PLAN' | 'ACTUAL';
   activityId: string;
 }
@@ -33,6 +33,9 @@ export default function ActivityItemCard({
     TASK: { label: 'Tugas', style: 'bg-blue-50 text-blue-700 border-blue-200' },
     REVIEW: { label: 'Review', style: 'bg-amber-50 text-amber-700 border-amber-200' },
     TRAINING: { label: 'Training', style: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    FINANCE: { label: 'Finance', style: 'bg-rose-50 text-rose-700 border-rose-200' },
+    MARKETING: { label: 'Marketing', style: 'bg-pink-50 text-pink-700 border-pink-200' },
+    LOGISTICS: { label: 'Logistik', style: 'bg-orange-50 text-orange-700 border-orange-200' },
     OTHER: { label: 'Lainnya', style: 'bg-slate-100 text-slate-600 border-slate-200' },
   };
 

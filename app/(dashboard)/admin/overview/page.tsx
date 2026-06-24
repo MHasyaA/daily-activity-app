@@ -593,14 +593,35 @@ function AdminOverviewContent() {
                       ) : null}
 
                       {/* Notes / Blocker */}
-                      {activity && activity.note && (
-                        <div className="pt-3 border-t border-slate-100 text-xs">
-                          <span className="font-bold text-slate-500 uppercase text-[9px] tracking-wider block mb-1">
-                            Catatan / Kendala Karyawan
+                      {activity && (activity.note || activity.attachment) && (
+                        <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
+                          <span className="font-bold text-slate-500 uppercase text-[9px] tracking-wider block">
+                            Catatan & Bukti Kerja Karyawan
                           </span>
-                          <div className="bg-rose-50/50 text-rose-700 border border-rose-100 rounded-xl p-3 font-medium">
-                            {activity.note}
-                          </div>
+                          {activity.note && (
+                            <div className="bg-rose-50/50 text-rose-700 border border-rose-100 rounded-xl p-3 font-medium">
+                              {activity.note}
+                            </div>
+                          )}
+                          {activity.attachment && (
+                            <div className="bg-slate-50 p-2.5 border border-slate-200 rounded-xl max-w-sm">
+                              <a 
+                                href={activity.attachment} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="relative block overflow-hidden rounded-lg border border-slate-200 cursor-pointer group"
+                              >
+                                <img 
+                                  src={activity.attachment} 
+                                  alt="Bukti Kerja" 
+                                  className="max-h-48 object-contain w-full rounded-lg transition-transform group-hover:scale-102" 
+                                />
+                                <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center font-bold text-white text-[10px]">
+                                  Buka Gambar Penuh
+                                </div>
+                              </a>
+                            </div>
+                          )}
                         </div>
                       )}
 

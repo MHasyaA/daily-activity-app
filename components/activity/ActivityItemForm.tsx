@@ -23,7 +23,7 @@ export default function ActivityItemForm({
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('09:00');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<'MEETING' | 'TASK' | 'REVIEW' | 'TRAINING' | 'OTHER'>('TASK');
+  const [category, setCategory] = useState<'MEETING' | 'TASK' | 'REVIEW' | 'TRAINING' | 'OTHER' | 'FINANCE' | 'MARKETING' | 'LOGISTICS'>('TASK');
   const [error, setError] = useState<string | null>(null);
 
   // Initialize form when itemToEdit changes
@@ -154,13 +154,16 @@ export default function ActivityItemForm({
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as 'MEETING' | 'TASK' | 'REVIEW' | 'TRAINING' | 'OTHER')}
+              onChange={(e) => setCategory(e.target.value as 'MEETING' | 'TASK' | 'REVIEW' | 'TRAINING' | 'OTHER' | 'FINANCE' | 'MARKETING' | 'LOGISTICS')}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-sm font-semibold text-slate-700 outline-none transition-all"
             >
               <option value="TASK">Tugas / Pengerjaan Projek</option>
               <option value="MEETING">Meeting / Sync-up</option>
               <option value="REVIEW">Review / Testing</option>
               <option value="TRAINING">Training / Pembelajaran</option>
+              <option value="FINANCE">Finance / Rekap Dana</option>
+              <option value="MARKETING">Marketing / Edit Content</option>
+              <option value="LOGISTICS">Logistik / Belanja Barang</option>
               <option value="OTHER">Lainnya</option>
             </select>
           </div>

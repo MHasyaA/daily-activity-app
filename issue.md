@@ -1,62 +1,69 @@
-# Plan Optimasi Sistem Daily Activity App
+# Planning Update Fitur Daily Activity App
 
-Dokumen ini berisi high-level planning untuk pengembangan dan optimasi fitur pada Daily Activity App. Implementasi dari task ini disiapkan agar dapat dikerjakan dengan mudah oleh junior programmer atau asisten AI.
+Dokumen ini berisi high-level planning untuk implementasi fitur-fitur baru pada aplikasi Daily Activity. Dokumen ini ditujukan sebagai panduan (guideline) untuk eksekusi oleh junior programmer atau AI coding assistant.
 
-## 1. Fitur Employee (Karyawan)
+## 1. Pemotongan Jam Istirahat Otomatis (12:00 - 13:00)
 
-### 1.1. Penyederhanaan Logika Lemburan (Overtime)
-- **Tujuan**: Menghitung lemburan (overtime) dengan cara yang lebih mudah dipahami.
-- **Logika Baru**: `Overtime = Total Jam Actual - Total Jam Planning`
-- **Panduan Implementasi**:
-  - Perbarui fungsi perhitungan overtime di Backend (API/Service).
-  - Pastikan hasilnya tidak bernilai negatif (jika actual < planning, maka overtime = 0).
-  - Update UI untuk mencerminkan nilai perhitungan overtime yang baru ini di seluruh komponen yang membutuhkan.
+**Tujuan:** Memotong durasi jam kerja secara otomatis sebesar 1 jam apabila waktu kerja (atau *activity item*) melewati rentang jam 12:00 hingga 13:00.
 
-### 1.2. Dashboard Overview Tahunan (Yearly Overview)
-- **Tujuan**: Memberikan ringkasan data aktivitas karyawan dalam satu tahun berjalan.
-- **Panduan Implementasi**:
-  - Buat endpoint API untuk mengakumulasi data aktivitas (total planning, actual, overtime) per tahun.
-  - Buat komponen UI (Frontend) bernama `YearlyOverview`.
-  - Letakkan komponen ini di urutan paling atas halaman dashboard employee, persis di atas komponen Overview Bulanan (Monthly).
+**Detail Implementasi:**
+- **Lokasi Kode:** Fungsi utility untuk menghitung durasi jam kerja, kemungkinan besar akan digunakan di halaman laporan (`app/(dashboard)/admin/report/page.tsx`) atau di API kalkulasi.
+- **Logika Kalkulasi:**
+  - Buat sebuah helper function `calculateDuration(startTime, endTime)`.
+  - Ubah string waktu (misal "08:00") menjadi menit atau objek Date untuk mempermudah perhitungan selisih.
+  - Cek irisan (overlap) waktu kerja dengan waktu istirahat (12:00 - 13:00).
+  - Jika waktu kerja sepenuhnya mencakup 12:00 - 13:00, kurangi durasi total sebanyak 60 menit.
+  - *Contoh Kasus:* 
+    - `08:00 - 17:00` (9 jam), karena melewati 12:00-13:00, dikurangi 1 jam = 8 jam kerja.
+    - `08:00 - 12:00` (4 jam), tidak melewati masa istirahat = 4 jam kerja.
+    - `12:30 - 17:00` (4.5 jam), overlap dengan istirahat selama 30 menit (12:30-13:00), maka dikurangi 30 menit = 4 jam kerja.
 
-### 1.3. Persentase Kategori Kegiatan (Pie Chart)
-- **Tujuan**: Karyawan dapat melihat distribusi persentase dari kategori kegiatan yang mereka lakukan.
-- **Panduan Implementasi**:
-  - Hitung total durasi `actual` yang dihabiskan untuk masing-masing kategori kegiatan per bulan/tahun di sisi Backend.
-  - Konversi total durasi tersebut menjadi nilai persentase (%).
-  - Gunakan library charting (seperti Recharts atau Chart.js) untuk membuat komponen **Pie Chart**.
-  - Tampilkan persentase dari setiap kategori secara visual menggunakan Pie Chart tersebut di dalam dashboard.
+## 2. Fitur Attachment (Gambar) pada Catatan Harian
+
+**Tujuan:** Memungkinkan *employee* untuk mengunggah screenshot/foto pada Catatan Harian. Gambar akan dikompres secara otomatis di frontend, di-encode menjadi text (Base64), lalu disimpan ke Neon DB agar menghemat biaya dan *storage* tanpa menggunakan cloud bucket terpisah.
+
+**Detail Implementasi:**
+- **Update Schema Database (`prisma/schema.prisma`):**
+  - Tambahkan *field* baru pada model `Activity` (atau tempat penyimpanan `note`).
+  - Contoh: `attachmentBase64 String? @db.Text` (gunakan `@db.Text` agar dapat menyimpan string panjang di PostgreSQL).
+  - Lakukan `npx prisma generate` dan sinkronisasi DB (misal: `npx prisma db push`).
+- **Frontend Form (Employee Dashboard):**
+  - Tambahkan input file `<input type="file" accept="image/*" />` pada form laporan harian.
+  - **Auto Compress:** Gunakan library seperti `browser-image-compression` untuk mengecilkan ukuran gambar di sisi klien *sebelum* diubah ke format teks. Hal ini sangat krusial agar Neon DB tidak cepat penuh.
+  - **Base64 Encode:** Ubah file hasil kompresi menjadi string Base64 menggunakan `FileReader`.
+  - Kirim payload (JSON) yang mengandung `attachmentBase64` ke API endpoint (`POST /api/activity`).
+- **Backend API Update (`app/api/activity/route.ts`):**
+  - Modifikasi endpoint agar menerima dan menyimpan data `attachmentBase64` ke database melalui Prisma.
+- **Dashboard Report (Manager/Admin View):**
+  - Saat me-render detail laporan harian, periksa apakah ada `attachmentBase64`.
+  - Jika ada, decode/tampilkan langsung dengan tag image: `<img src={activity.attachmentBase64} alt="Bukti Kerja" />`.
+
+## 3. Penambahan Kategori Kegiatan Baru
+
+**Tujuan:** Menambahkan 3 kategori spesifik untuk memudahkan *employee* dalam mengkategorikan kegiatan.
+
+**Detail Implementasi:**
+- **Update Enum Database (`prisma/schema.prisma`):**
+  - Tambahkan nilai baru pada `enum Category`:
+    ```prisma
+    enum Category {
+      MEETING
+      TASK
+      REVIEW
+      TRAINING
+      OTHER
+      FINANCE    // Finance / Rekap Dana
+      MARKETING  // Marketing / Edit Content
+      LOGISTICS  // Logistik / Belanja Barang
+    }
+    ```
+  - Lakukan `npx prisma generate` dan sinkronisasi DB (`npx prisma db push`).
+- **Frontend Dropdown Update (`components/activity/ActivityItemForm.tsx` atau sejenisnya):**
+  - Perbarui opsi dropdown/select agar memuat label yang sesuai untuk *employee*:
+    - `FINANCE` akan dirender sebagai "Finance / Rekap Dana"
+    - `MARKETING` akan dirender sebagai "Marketing / Edit Content"
+    - `LOGISTICS` akan dirender sebagai "Logistik / Belanja Barang"
 
 ---
-
-## 2. Fitur Admin & Management (Manager)
-
-### 2.1. Fitur Notes (Catatan Manager)
-- **Tujuan**: Manager dapat memberikan feedback atau catatan (notes) terhadap rencana (planning) atau aktual (actual) kegiatan karyawannya.
-- **Panduan Implementasi**:
-  - **Database Update**: Tambahkan field `notes` atau `managerNotes` (tipe teks) pada tabel/schema database yang menyimpan record aktivitas harian.
-  - **Backend API**: Buat endpoint khusus agar role Manager/Admin dapat memperbarui (update) field `notes` tersebut.
-  - **Frontend UI**: Tambahkan area text-input atau popup modal di view Manager untuk mengetik catatan. Pastikan data ini ditampilkan (read-only) di dashboard karyawan agar mereka bisa membaca feedback-nya.
-
-### 2.2. Employee-Specific Dashboard (View Detail Team)
-- **Tujuan**: Manager bisa melihat dashboard persis seperti yang dilihat karyawan tersebut secara spesifik dan terperinci.
-- **Panduan Implementasi**:
-  - Pada halaman **Team Dashboard**, buat setiap nama/akun karyawan menjadi tautan yang bisa diklik.
-  - Saat diklik, arahkan Manager ke halaman dinamis baru (misal `/team/[employeeId]`).
-  - Halaman ini akan me-reuse komponen Dashboard milik employee, tapi difilter hanya untuk `employeeId` terkait dan diatur dalam mode **Read-Only** (hanya bisa dilihat, tidak bisa diubah).
-  - Pastikan fitur baru seperti **Overview Tahunan**, **Overtime baru**, dan **Pie Chart Persentase Kategori** juga bisa dilihat oleh Manager di halaman ini.
-
-### 2.3. Pembaruan Fitur Export Data di Manager
-- **Tujuan**: Manager dapat mengunduh seluruh history data secara komprehensif.
-- **Panduan Implementasi**:
-  - Update fungsi generate file export (Excel/CSV) yang sudah ada.
-  - Pastikan format file hasil export mencakup semua kolom (fields) terbaru untuk tiap baris/tanggal:
-    - Nama Employee
-    - Tanggal
-    - Rincian Kegiatan
-    - Total Jam Planning
-    - Total Jam Actual
-    - Overtime (berdasarkan logika baru)
-    - Kategori Kegiatan
-    - **Notes/Catatan Manager**
-  - Pastikan query database me-load semua relasi tabel yang dibutuhkan sebelum melakukan export.
+*Catatan Tambahan untuk Developer/AI:*
+Untuk fitur attachment Base64, pastikan batas limit body parser di Next.js API route sudah disesuaikan jika gambar base64 ukurannya melebihi batas default (misal 1MB), atau buat kompresinya cukup agresif sehingga ukurannya di bawah 1MB.

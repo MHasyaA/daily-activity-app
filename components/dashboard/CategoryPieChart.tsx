@@ -18,6 +18,9 @@ const categoryConfig: Record<string, { color: string; label: string; stroke: str
   TASK: { color: 'bg-emerald-500', label: 'Task', stroke: '#10b981' },
   REVIEW: { color: 'bg-amber-500', label: 'Review', stroke: '#f59e0b' },
   TRAINING: { color: 'bg-purple-500', label: 'Training', stroke: '#8b5cf6' },
+  FINANCE: { color: 'bg-rose-500', label: 'Finance', stroke: '#f43f5e' },
+  MARKETING: { color: 'bg-pink-500', label: 'Marketing', stroke: '#ec4899' },
+  LOGISTICS: { color: 'bg-orange-500', label: 'Logistik', stroke: '#f97316' },
   OTHER: { color: 'bg-slate-500', label: 'Lainnya', stroke: '#64748b' },
 };
 

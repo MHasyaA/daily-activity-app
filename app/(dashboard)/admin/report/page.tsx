@@ -10,7 +10,8 @@ import {
   Download, 
   Loader2, 
   FileSpreadsheet,
-  AlertCircle
+  AlertCircle,
+  Paperclip
 } from 'lucide-react';
 import Topbar from '@/components/layout/Topbar';
 import { calculateDuration, formatHours } from '@/lib/utils';
@@ -36,6 +37,7 @@ interface ActivityData {
   date: string;
   status: 'WFO' | 'WFH' | 'LIBUR';
   note: string | null;
+  attachment: string | null;
   user: {
     name: string;
     email: string;
@@ -289,8 +291,21 @@ export default function AdminReportPage() {
                         <td className="px-6 py-4 text-center text-slate-800 text-xs font-bold">
                           {act.status === 'LIBUR' ? '-' : formatHours(actualHours)}
                         </td>
-                        <td className="px-6 py-4 max-w-xs truncate text-xs text-slate-400 font-normal">
-                          {act.note || '-'}
+                        <td className="px-6 py-4 max-w-xs text-xs text-slate-500 font-normal">
+                          <div className="flex flex-col gap-1">
+                            <span className="truncate block text-slate-600">{act.note || '-'}</span>
+                            {act.attachment && (
+                              <a 
+                                href={act.attachment} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="inline-flex items-center gap-1 text-sky-600 hover:text-sky-700 font-bold hover:underline mt-0.5"
+                              >
+                                <Paperclip size={11} className="shrink-0" />
+                                Lihat Lampiran
+                              </a>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );

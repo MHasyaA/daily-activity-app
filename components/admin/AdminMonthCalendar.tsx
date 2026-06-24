@@ -17,6 +17,7 @@ export interface AdminCalendarActivity {
   date: string;
   status: 'WFO' | 'WFH' | 'LIBUR';
   note: string | null;
+  attachment?: string | null;
   managerNotes: string | null;
   userId: string;
   user: {

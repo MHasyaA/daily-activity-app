@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -58,7 +59,12 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ activity, targetUser });
+    const serializedActivity = activity ? {
+      ...activity,
+      attachment: activity.attachment ? `data:image/jpeg;base64,${Buffer.from(activity.attachment).toString('base64')}` : null,
+    } : null;
+
+    return NextResponse.json({ activity: serializedActivity, targetUser });
   } catch (error) {
     console.error('Error fetching activity:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -72,13 +78,37 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { date: dateParam, status, note } = await req.json();
+    const { date: dateParam, status, note, attachment: attachmentBase64 } = await req.json();
 
     if (!dateParam || !status) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const date = new Date(dateParam);
+
+    let attachmentBuffer: Buffer | null = null;
+    if (attachmentBase64) {
+      const base64Data = attachmentBase64.replace(/^data:image\/\w+;base64,/, '');
+      attachmentBuffer = Buffer.from(base64Data, 'base64');
+    }
+
+    const updateData: Prisma.ActivityUncheckedUpdateInput = {
+      status,
+      note,
+    };
+    if (attachmentBase64 !== undefined) {
+      updateData.attachment = attachmentBuffer ? new Uint8Array(attachmentBuffer) : null;
+    }
+
+    const createData: Prisma.ActivityUncheckedCreateInput = {
+      userId: session.user.id,
+      date: date,
+      status,
+      note,
+    };
+    if (attachmentBuffer) {
+      createData.attachment = new Uint8Array(attachmentBuffer);
+    }
 
     const activity = await prisma.activity.upsert({
       where: {
@@ -87,19 +117,16 @@ export async function POST(req: NextRequest) {
           date: date,
         },
       },
-      update: {
-        status,
-        note,
-      },
-      create: {
-        userId: session.user.id,
-        date: date,
-        status,
-        note,
-      },
+      update: updateData,
+      create: createData,
     });
 
-    return NextResponse.json({ activity });
+    const serializedActivity = {
+      ...activity,
+      attachment: attachmentBase64 || null,
+    };
+
+    return NextResponse.json({ activity: serializedActivity });
   } catch (error) {
     console.error('Error saving activity:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

@@ -32,6 +32,7 @@ model Activity {
   date      DateTime @db.Date    // satu record per user per tanggal
   status    Status
   note      String?
+  attachment Bytes?
   managerNotes String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -68,6 +69,9 @@ enum Category {
   REVIEW
   TRAINING
   OTHER
+  FINANCE
+  MARKETING
+  LOGISTICS
 }
 
 enum ItemType {

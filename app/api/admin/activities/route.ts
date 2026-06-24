@@ -60,9 +60,14 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    const serializedActivities = activities.map(act => ({
+      ...act,
+      attachment: act.attachment ? `data:image/jpeg;base64,${Buffer.from(act.attachment).toString('base64')}` : null,
+    }));
+
     // Map users to their activity
     const reportData = allUsers.map((user) => {
-      const userActivity = activities.find((act) => act.userId === user.id);
+      const userActivity = serializedActivities.find((act) => act.userId === user.id);
       return {
         user,
         activity: userActivity || null,

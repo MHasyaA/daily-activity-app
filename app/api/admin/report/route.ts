@@ -52,7 +52,12 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ activities });
+    const serializedActivities = activities.map(act => ({
+      ...act,
+      attachment: act.attachment ? `data:image/jpeg;base64,${Buffer.from(act.attachment).toString('base64')}` : null,
+    }));
+
+    return NextResponse.json({ activities: serializedActivities });
   } catch (error) {
     console.error('Error fetching admin report preview:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
