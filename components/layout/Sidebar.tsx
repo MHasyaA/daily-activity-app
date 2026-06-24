@@ -44,10 +44,10 @@ export default function Sidebar() {
     } left-0`}>
       {/* Brand Header */}
       <div className="h-16 flex items-center px-6 border-b border-slate-800 gap-3">
-        <div className="p-2 bg-sky-500 rounded-lg text-white">
+        <div className="p-2 bg-rose-500 rounded-lg text-white">
           <Calendar size={20} className="stroke-[2.5]" />
         </div>
-        <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
+        <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-rose-500 to-orange-500 bg-clip-text text-transparent">
           DailyActivity
         </span>
       </div>
@@ -69,7 +69,7 @@ export default function Sidebar() {
                     onClick={() => setIsOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? 'bg-sky-600 text-white font-semibold shadow-md shadow-sky-600/20'
+                        ? 'bg-rose-600 text-white font-semibold shadow-md shadow-rose-600/20'
                         : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                     }`}
                   >
@@ -98,7 +98,7 @@ export default function Sidebar() {
                       onClick={() => setIsOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                         isActive
-                          ? 'bg-sky-600 text-white font-semibold shadow-md shadow-sky-600/20'
+                          ? 'bg-rose-600 text-white font-semibold shadow-md shadow-rose-600/20'
                           : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                       }`}
                     >
@@ -116,7 +116,7 @@ export default function Sidebar() {
       {/* User Footer info */}
       <div className="p-4 border-t border-slate-800 bg-slate-950/40">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center font-bold text-sky-400 border border-slate-600">
+          <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center font-bold text-rose-400 border border-slate-600">
             {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : 'U'}
           </div>
           <div className="flex-1 min-w-0">

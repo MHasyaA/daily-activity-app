@@ -49,7 +49,7 @@ export default function ActivityColumn({
             {showCopyOption && onCopyFromPlanning && (
               <button
                 onClick={onCopyFromPlanning}
-                className="inline-flex items-center gap-1 px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-xl text-xs font-bold transition-colors shadow-sm"
+                className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-colors shadow-sm"
                 title="Salin semua kegiatan dari planning ke actual"
               >
                 <Copy size={13} />
@@ -89,7 +89,7 @@ export default function ActivityColumn({
             {!isReadOnly && (
               <button
                 onClick={onAddItemClick}
-                className="mt-3 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                className="mt-3 text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors"
               >
                 + Tambah Sekarang
               </button>

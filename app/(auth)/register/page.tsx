@@ -55,16 +55,16 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-slate-900 via-slate-800 to-indigo-950 px-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-slate-900 via-slate-800 to-rose-950 px-4 relative overflow-hidden">
       {/* Decorative Blur Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-sky-500/10 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[120px]" />
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-rose-500/10 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-orange-500/10 rounded-full blur-[120px]" />
 
       <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8 transform transition-all animate-in fade-in zoom-in-95 duration-300">
         
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="p-3 bg-sky-500 rounded-2xl text-white shadow-lg shadow-sky-500/20 mb-3">
+          <div className="p-3 bg-rose-500 rounded-2xl text-white shadow-lg shadow-rose-500/20 mb-3">
             <Calendar size={28} className="stroke-[2.5]" />
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Daftar Akun Baru</h2>
@@ -99,7 +99,7 @@ export default function RegisterPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Nama Lengkap Anda"
-                  className="w-full pl-11 pr-4 py-2.5 bg-white/5 border border-white/10 focus:border-sky-500 focus:bg-white/10 rounded-2xl text-sm font-medium text-white placeholder-slate-500 outline-none transition-all"
+                  className="w-full pl-11 pr-4 py-2.5 bg-white/5 border border-white/10 focus:border-rose-500 focus:bg-white/10 rounded-2xl text-sm font-medium text-white placeholder-slate-500 outline-none transition-all"
                 />
                 <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
@@ -116,7 +116,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="email@company.com"
-                  className="w-full pl-11 pr-4 py-2.5 bg-white/5 border border-white/10 focus:border-sky-500 focus:bg-white/10 rounded-2xl text-sm font-medium text-white placeholder-slate-500 outline-none transition-all"
+                  className="w-full pl-11 pr-4 py-2.5 bg-white/5 border border-white/10 focus:border-rose-500 focus:bg-white/10 rounded-2xl text-sm font-medium text-white placeholder-slate-500 outline-none transition-all"
                 />
                 <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
@@ -131,7 +131,7 @@ export default function RegisterPage() {
                   required
                   value={division}
                   onChange={(e) => setDivision(e.target.value)}
-                  className="w-full pl-11 pr-4 py-2.5 bg-white/5 border border-white/10 focus:border-sky-500 focus:bg-white/10 rounded-2xl text-sm font-medium text-white outline-none transition-all appearance-none"
+                  className="w-full pl-11 pr-4 py-2.5 bg-white/5 border border-white/10 focus:border-rose-500 focus:bg-white/10 rounded-2xl text-sm font-medium text-white outline-none transition-all appearance-none"
                 >
                   <option value="" disabled className="text-slate-900 bg-white">Pilih Divisi</option>
                   {divisionOptions.map(opt => (
@@ -154,7 +154,7 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Minimal 6 karakter"
                   minLength={6}
-                  className="w-full pl-11 pr-4 py-2.5 bg-white/5 border border-white/10 focus:border-sky-500 focus:bg-white/10 rounded-2xl text-sm font-medium text-white placeholder-slate-500 outline-none transition-all"
+                  className="w-full pl-11 pr-4 py-2.5 bg-white/5 border border-white/10 focus:border-rose-500 focus:bg-white/10 rounded-2xl text-sm font-medium text-white placeholder-slate-500 outline-none transition-all"
                 />
                 <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
@@ -163,7 +163,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 disabled:bg-sky-500/50 text-white text-sm font-bold rounded-2xl shadow-lg shadow-sky-500/25 transition-all flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-500/50 text-white text-sm font-bold rounded-2xl shadow-lg shadow-rose-500/25 transition-all flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>

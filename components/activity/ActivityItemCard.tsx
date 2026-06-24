@@ -42,7 +42,7 @@ export default function ActivityItemCard({
   const config = categoryConfigs[item.category] || categoryConfigs.OTHER;
 
   return (
-    <div className="group bg-white rounded-xl border border-slate-200 hover:border-sky-300 hover:shadow-md transition-all duration-200 p-4">
+    <div className="group bg-white rounded-xl border border-slate-200 hover:border-rose-300 hover:shadow-md transition-all duration-200 p-4">
       <div className="flex justify-between items-start gap-4">
         {/* Time & Badge */}
         <div className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export default function ActivityItemCard({
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={() => onEdit(item)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-slate-100 transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-100 transition-colors"
               title="Edit Item"
             >
               <Edit2 size={14} />

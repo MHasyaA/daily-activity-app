@@ -85,7 +85,7 @@ export default function AdminMonthCalendar({
           </Link>
           <Link
             href={todayUrl}
-            className="px-4 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-100 rounded-xl text-xs font-bold transition-all shadow-sm"
+            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-xl text-xs font-bold transition-all shadow-sm"
           >
             Bulan Ini
           </Link>
@@ -153,7 +153,7 @@ export default function AdminMonthCalendar({
 
                 {/* Log count indicator for mobile */}
                 {totalLogs > 0 && (
-                  <span className="sm:hidden inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-sky-50 text-[8px] font-extrabold text-sky-700 border border-sky-100">
+                  <span className="sm:hidden inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-rose-50 text-[8px] font-extrabold text-rose-700 border border-rose-100">
                     {totalLogs}
                   </span>
                 )}
@@ -221,7 +221,7 @@ export default function AdminMonthCalendar({
                         );
                       })}
                       {totalLogs > 4 && (
-                        <div className="text-[8px] text-sky-600 font-extrabold leading-none pt-0.5">
+                        <div className="text-[8px] text-rose-600 font-extrabold leading-none pt-0.5">
                           +{totalLogs - 4} karyawan lainnya
                         </div>
                       )}

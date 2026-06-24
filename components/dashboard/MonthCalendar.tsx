@@ -65,7 +65,7 @@ export default function MonthCalendar({
           </Link>
           <Link
             href={todayUrl}
-            className="px-4 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-100 rounded-xl text-xs font-bold transition-all shadow-sm"
+            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-xl text-xs font-bold transition-all shadow-sm"
           >
             Bulan Ini
           </Link>
@@ -155,7 +155,7 @@ export default function MonthCalendar({
 
                 {/* Quick Add Button on Hover */}
                 {!hasActivity && !day.isHoliday && (
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 bg-slate-100 rounded text-slate-400 hover:text-sky-600 hover:bg-slate-200">
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 bg-slate-100 rounded text-slate-400 hover:text-rose-600 hover:bg-slate-200">
                     <Plus size={10} />
                   </span>
                 )}
@@ -190,7 +190,7 @@ export default function MonthCalendar({
                           </div>
                         ))}
                         {activity.items.length > 2 && (
-                          <div className="text-[8px] text-sky-600 font-bold leading-none mt-0.5">
+                          <div className="text-[8px] text-rose-600 font-bold leading-none mt-0.5">
                             +{activity.items.length - 2} kegiatan lainnya
                           </div>
                         )}

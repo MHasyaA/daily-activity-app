@@ -252,7 +252,7 @@ function AdminOverviewContent() {
                 setDivision(e.target.value);
                 router.push(`/admin/overview?month=${monthVal + 1}&year=${yearVal}${e.target.value ? `&division=${e.target.value}` : ''}`);
               }}
-              className="px-4 py-2 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all w-full md:w-48"
+              className="px-4 py-2 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all w-full md:w-48"
             >
               {divisionOptions.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -291,7 +291,7 @@ function AdminOverviewContent() {
             {/* Total Fill Rate */}
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-sky-50 rounded-xl text-sky-600">
+                <div className="p-3 bg-rose-50 rounded-xl text-rose-600">
                   <CheckCircle size={24} />
                 </div>
                 <div>
@@ -308,7 +308,7 @@ function AdminOverviewContent() {
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-1.5">
                   <div 
-                    className="bg-sky-500 h-1.5 rounded-full transition-all duration-500" 
+                    className="bg-rose-500 h-1.5 rounded-full transition-all duration-500" 
                     style={{ width: `${stats.completionRate}%` }} 
                   />
                 </div>
@@ -401,7 +401,7 @@ function AdminOverviewContent() {
         {/* AdminMonthCalendar */}
         {loading ? (
           <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm h-[450px] flex flex-col items-center justify-center text-slate-400">
-            <Loader2 size={36} className="animate-spin text-sky-500 mb-3" />
+            <Loader2 size={36} className="animate-spin text-rose-500 mb-3" />
             <span className="text-sm font-semibold">Memuat kalender tim...</span>
           </div>
         ) : (
@@ -453,7 +453,7 @@ function AdminOverviewContent() {
                   placeholder="Cari nama atau email karyawan..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 placeholder-slate-400 outline-none transition-all"
                 />
                 <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
@@ -480,7 +480,7 @@ function AdminOverviewContent() {
                           <div>
                             <Link
                               href={`/dashboard?userId=${user.id}`}
-                              className="font-extrabold text-sm text-sky-600 hover:text-sky-700 hover:underline transition-colors block"
+                              className="font-extrabold text-sm text-rose-600 hover:text-rose-700 hover:underline transition-colors block"
                             >
                               {user.name}
                             </Link>
@@ -642,7 +642,7 @@ function AdminOverviewContent() {
                                   setEditingActivityId(activity.id);
                                   setFeedbackText(activity.managerNotes || '');
                                 }}
-                                className="text-[10px] font-bold text-sky-600 hover:text-sky-700 transition-colors flex items-center gap-1"
+                                className="text-[10px] font-bold text-rose-600 hover:text-rose-700 transition-colors flex items-center gap-1"
                               >
                                 {activity.managerNotes ? 'Ubah Feedback' : 'Beri Feedback'}
                               </button>
@@ -655,7 +655,7 @@ function AdminOverviewContent() {
                                 value={feedbackText}
                                 onChange={(e) => setFeedbackText(e.target.value)}
                                 placeholder="Tulis feedback atau catatan untuk hari ini..."
-                                className="w-full p-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all resize-y"
+                                className="w-full p-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all resize-y"
                                 rows={2}
                               />
                               <div className="flex justify-end gap-2">
@@ -668,7 +668,7 @@ function AdminOverviewContent() {
                                 </button>
                                 <button
                                   onClick={() => handleSaveFeedback(activity.id)}
-                                  className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-sm"
+                                  className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-sm"
                                   disabled={savingFeedback}
                                 >
                                   {savingFeedback && <Loader2 size={10} className="animate-spin" />}
@@ -679,7 +679,7 @@ function AdminOverviewContent() {
                           ) : (
                             <div className={`p-3 rounded-xl font-medium ${
                               activity.managerNotes 
-                                ? 'bg-sky-50/50 text-sky-800 border border-sky-100' 
+                                ? 'bg-rose-50/50 text-rose-800 border border-rose-100' 
                                 : 'bg-slate-50 text-slate-400 italic'
                             }`}>
                               {activity.managerNotes || 'Belum ada catatan manager.'}
@@ -708,7 +708,7 @@ export default function AdminOverviewPage() {
   return (
     <React.Suspense fallback={
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-slate-400">
-        <Loader2 size={36} className="animate-spin text-sky-500 mb-2" />
+        <Loader2 size={36} className="animate-spin text-rose-500 mb-2" />
         <span className="text-sm font-medium">Memuat overview tim...</span>
       </div>
     }>

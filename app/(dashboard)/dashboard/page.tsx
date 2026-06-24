@@ -257,7 +257,7 @@ export default async function DashboardPage({
         
         {/* Admin Viewing Banner */}
         {targetUser && (
-          <div className="bg-sky-50 border border-sky-200 text-sky-800 px-6 py-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="bg-rose-50 border border-rose-200 text-rose-800 px-6 py-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <p className="text-sm font-semibold">
                 Anda sedang melihat kalender aktivitas dari <strong>{targetUser.name}</strong>.
@@ -265,7 +265,7 @@ export default async function DashboardPage({
             </div>
             <Link
               href="/admin/dashboard"
-              className="text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-xl transition-all shadow-sm"
+              className="text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl transition-all shadow-sm"
             >
               Kembali ke Dashboard Tim
             </Link>
@@ -289,7 +289,7 @@ export default async function DashboardPage({
 
             {/* Actual hours card */}
             <div className="bg-slate-50/50 rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center gap-4 hover:bg-white transition-all">
-              <div className="p-3 bg-sky-50 rounded-xl text-sky-600">
+              <div className="p-3 bg-rose-50 rounded-xl text-rose-600">
                 <CheckCircle2 size={20} />
               </div>
               <div>
@@ -354,7 +354,7 @@ export default async function DashboardPage({
 
               {/* Actual hours card */}
               <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
-                <div className="p-3 bg-sky-50 rounded-xl text-sky-600">
+                <div className="p-3 bg-rose-50 rounded-xl text-rose-600">
                   <CheckCircle2 size={20} />
                 </div>
                 <div>

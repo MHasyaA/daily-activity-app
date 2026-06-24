@@ -112,7 +112,7 @@ export default function AdminDashboardPage() {
                 type="date"
                 value={dateStr}
                 onChange={(e) => setDateStr(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
               />
               <Calendar size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             </div>
@@ -121,7 +121,7 @@ export default function AdminDashboardPage() {
             <select
               value={division}
               onChange={(e) => setDivision(e.target.value)}
-              className="flex-1 sm:flex-none px-4 py-2 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
+              className="flex-1 sm:flex-none px-4 py-2 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
             >
               {divisionOptions.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -134,7 +134,7 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {/* Fill rate card */}
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-            <div className="p-3.5 bg-sky-50 rounded-2xl text-sky-600">
+            <div className="p-3.5 bg-rose-50 rounded-2xl text-rose-600">
               <CheckCircle size={22} />
             </div>
             <div>
@@ -197,7 +197,7 @@ export default function AdminDashboardPage() {
           <div className="overflow-x-auto">
             {loading ? (
               <div className="py-24 text-center flex flex-col items-center justify-center text-slate-400">
-                <Loader2 size={32} className="animate-spin text-sky-500 mb-2" />
+                <Loader2 size={32} className="animate-spin text-rose-500 mb-2" />
                 <span className="text-xs font-semibold">Memuat data tim...</span>
               </div>
             ) : reportData.length > 0 ? (
@@ -232,7 +232,7 @@ export default function AdminDashboardPage() {
                             <div>
                               <Link 
                                 href={`/dashboard?userId=${row.user.id}`}
-                                className="font-bold text-sky-600 hover:text-sky-700 hover:underline text-xs transition-colors animate-none"
+                                className="font-bold text-rose-600 hover:text-rose-700 hover:underline text-xs transition-colors animate-none"
                               >
                                 {row.user.name}
                               </Link>
@@ -281,7 +281,7 @@ export default function AdminDashboardPage() {
                                     href={att.url} 
                                     target="_blank" 
                                     rel="noopener noreferrer" 
-                                    className="inline-flex items-center gap-0.5 text-sky-600 hover:text-sky-700 font-bold hover:underline"
+                                    className="inline-flex items-center gap-0.5 text-rose-600 hover:text-rose-700 font-bold hover:underline"
                                     title={`Buka Lampiran ${idx + 1}`}
                                   >
                                     <Paperclip size={10} className="shrink-0" />

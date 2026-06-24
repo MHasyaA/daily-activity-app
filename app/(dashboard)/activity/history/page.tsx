@@ -135,7 +135,7 @@ export default async function HistoryPage({
                 name="q"
                 defaultValue={q}
                 placeholder="Contoh: meeting, project..."
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
               />
             </div>
 
@@ -147,7 +147,7 @@ export default async function HistoryPage({
               <select
                 name="month"
                 defaultValue={monthParam}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
               >
                 {monthOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -163,7 +163,7 @@ export default async function HistoryPage({
               <select
                 name="year"
                 defaultValue={yearParam}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
               >
                 {yearOptions.map(yr => (
                   <option key={yr} value={yr}>{yr}</option>
@@ -180,7 +180,7 @@ export default async function HistoryPage({
                 <select
                   name="status"
                   defaultValue={statusParam}
-                  className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
+                  className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
                 >
                   <option value="ALL">Semua Status</option>
                   <option value="WFO">WFO</option>
@@ -189,7 +189,7 @@ export default async function HistoryPage({
                 </select>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-md shadow-sky-600/10 transition-colors"
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md shadow-rose-600/10 transition-colors"
                 >
                   Cari
                 </button>
@@ -215,7 +215,7 @@ export default async function HistoryPage({
             </div>
             <a
               href={csvExportUrl}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-100 rounded-xl text-xs font-bold transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-xl text-xs font-bold transition-all shadow-sm"
             >
               <Download size={14} />
               Export ke CSV
@@ -246,7 +246,7 @@ export default async function HistoryPage({
                     return (
                       <tr key={act.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4">
-                          <Link href={`/activity/${dateUrl}`} className="hover:text-sky-600 transition-colors font-bold text-slate-800">
+                          <Link href={`/activity/${dateUrl}`} className="hover:text-rose-600 transition-colors font-bold text-slate-800">
                             {formattedDate}
                           </Link>
                         </td>
@@ -279,7 +279,7 @@ export default async function HistoryPage({
                         <td className="px-6 py-4 text-right">
                           <Link
                             href={`/activity/${dateUrl}`}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors"
                           >
                             Edit
                             <ChevronRight size={14} />

@@ -139,7 +139,7 @@ export default function AdminReportPage() {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
                 />
                 <Calendar size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
@@ -155,7 +155,7 @@ export default function AdminReportPage() {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
                 />
                 <Calendar size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
@@ -172,7 +172,7 @@ export default function AdminReportPage() {
                   setDivision(e.target.value);
                   setUserId(''); // reset user filter on division change
                 }}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all"
               >
                 {divisionOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -189,7 +189,7 @@ export default function AdminReportPage() {
                 value={userId}
                 disabled={loadingUsers}
                 onChange={(e) => setUserId(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all disabled:opacity-50"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-xs font-semibold text-slate-700 outline-none transition-all disabled:opacity-50"
               >
                 <option value="">Semua Karyawan</option>
                 {users
@@ -220,7 +220,7 @@ export default function AdminReportPage() {
             
             <a
               href={csvExportUrl}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-extrabold rounded-xl shadow-lg shadow-sky-600/10 transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl shadow-lg shadow-rose-600/10 transition-all"
             >
               <Download size={14} />
               Unduh File CSV
@@ -231,7 +231,7 @@ export default function AdminReportPage() {
           <div className="overflow-x-auto">
             {loadingReport ? (
               <div className="py-24 text-center flex flex-col items-center justify-center text-slate-400">
-                <Loader2 size={32} className="animate-spin text-sky-500 mb-2" />
+                <Loader2 size={32} className="animate-spin text-rose-500 mb-2" />
                 <span className="text-xs font-semibold">Memuat preview laporan...</span>
               </div>
             ) : activities.length > 0 ? (
@@ -258,7 +258,7 @@ export default function AdminReportPage() {
                           <div>
                             <Link 
                               href={`/dashboard?userId=${act.userId}`}
-                              className="font-bold text-sky-600 hover:text-sky-700 hover:underline text-xs transition-colors"
+                              className="font-bold text-rose-600 hover:text-rose-700 hover:underline text-xs transition-colors"
                             >
                               {act.user.name}
                             </Link>
@@ -302,7 +302,7 @@ export default function AdminReportPage() {
                                     href={att.url} 
                                     target="_blank" 
                                     rel="noopener noreferrer" 
-                                    className="inline-flex items-center gap-0.5 text-sky-600 hover:text-sky-700 font-bold hover:underline"
+                                    className="inline-flex items-center gap-0.5 text-rose-600 hover:text-rose-700 font-bold hover:underline"
                                     title={`Buka Lampiran ${idx + 1}`}
                                   >
                                     <Paperclip size={10} className="shrink-0" />

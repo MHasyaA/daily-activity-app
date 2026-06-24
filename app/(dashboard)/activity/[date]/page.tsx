@@ -398,7 +398,7 @@ export default function ActivityDetailPage() {
         
         {/* Admin Viewing Banner */}
         {targetUser && (
-          <div className="bg-sky-50 border border-sky-200 text-sky-800 px-6 py-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="bg-rose-50 border border-rose-200 text-rose-800 px-6 py-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <p className="text-sm font-semibold">
                 Anda sedang melihat detail aktivitas dari <strong>{targetUser.name}</strong>.
@@ -406,7 +406,7 @@ export default function ActivityDetailPage() {
             </div>
             <Link
               href={`/dashboard?userId=${userId}`}
-              className="text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-xl transition-all shadow-sm"
+              className="text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl transition-all shadow-sm"
             >
               Kembali ke Kalender Karyawan
             </Link>
@@ -443,7 +443,7 @@ export default function ActivityDetailPage() {
             {/* Save Status indicators */}
             <div className="flex items-center gap-4 self-stretch md:self-auto justify-between">
               {saving && (
-                <div className="flex items-center gap-1.5 text-xs text-sky-600 font-semibold bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-100">
+                <div className="flex items-center gap-1.5 text-xs text-rose-600 font-semibold bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-100">
                   <Loader2 size={13} className="animate-spin" />
                   Menyimpan...
                 </div>
@@ -535,7 +535,7 @@ export default function ActivityDetailPage() {
         {/* Content Body based on status */}
         {loading ? (
           <div className="py-24 flex flex-col items-center justify-center bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <Loader2 size={36} className="animate-spin text-sky-500" />
+            <Loader2 size={36} className="animate-spin text-rose-500" />
             <span className="text-sm text-slate-400 font-medium mt-3">Memuat aktivitas...</span>
           </div>
         ) : status === 'LIBUR' ? (
@@ -615,7 +615,7 @@ export default function ActivityDetailPage() {
                 onChange={(e) => setNote(e.target.value)}
                 onPaste={!isViewingOthers ? handlePaste : undefined}
                 placeholder={isViewingOthers ? "Tidak ada catatan" : "Tuliskan kendala, blocker, atau catatan penting hari ini..."}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-sm font-medium text-slate-700 outline-none transition-all min-h-[90px] max-h-[160px]"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-sm font-medium text-slate-700 outline-none transition-all min-h-[90px] max-h-[160px]"
                 maxLength={500}
                 disabled={isViewingOthers}
               />
@@ -706,7 +706,7 @@ export default function ActivityDetailPage() {
                       ? "Tuliskan catatan, arahan, atau feedback untuk planning/actual karyawan ini..."
                       : "Belum ada catatan dari manager"
                   }
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-sm font-medium text-slate-700 outline-none transition-all min-h-[90px] max-h-[160px]"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-sm font-medium text-slate-700 outline-none transition-all min-h-[90px] max-h-[160px]"
                   maxLength={500}
                   disabled={session?.user?.role !== 'MANAGER' && session?.user?.role !== 'ADMIN'}
                 />

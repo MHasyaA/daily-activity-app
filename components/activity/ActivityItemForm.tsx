@@ -123,7 +123,7 @@ export default function ActivityItemForm({
                   type="time"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-sm font-semibold text-slate-700 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-sm font-semibold text-slate-700 outline-none transition-all"
                   required
                 />
                 <Clock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -139,7 +139,7 @@ export default function ActivityItemForm({
                   type="time"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-sm font-semibold text-slate-700 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-sm font-semibold text-slate-700 outline-none transition-all"
                   required
                 />
                 <Clock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -155,7 +155,7 @@ export default function ActivityItemForm({
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as 'MEETING' | 'TASK' | 'REVIEW' | 'TRAINING' | 'OTHER' | 'FINANCE' | 'MARKETING' | 'LOGISTICS')}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-sm font-semibold text-slate-700 outline-none transition-all"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-sm font-semibold text-slate-700 outline-none transition-all"
             >
               <option value="TASK">Tugas / Pengerjaan Projek</option>
               <option value="MEETING">Meeting / Sync-up</option>
@@ -182,7 +182,7 @@ export default function ActivityItemForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Contoh: Mengerjakan modul autentikasi NextAuth, meeting harian tim engineering..."
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl text-sm font-medium text-slate-700 outline-none transition-all min-h-[100px] max-h-[180px]"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-sm font-medium text-slate-700 outline-none transition-all min-h-[100px] max-h-[180px]"
               maxLength={200}
               required
             />
@@ -199,7 +199,7 @@ export default function ActivityItemForm({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-bold rounded-xl shadow-md shadow-sky-600/10 transition-colors"
+              className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl shadow-md shadow-rose-600/10 transition-colors"
             >
               {itemToEdit ? 'Simpan Perubahan' : 'Tambah Kegiatan'}
             </button>
