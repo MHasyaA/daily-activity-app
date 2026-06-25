@@ -149,7 +149,7 @@ export async function GET(req: NextRequest) {
 
           // Calculate overtime
           const planHours = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
-          let actualHours = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
+          const actualHours = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
           const actDate = new Date(act.date);
           const dayOfWeek = actDate.getDay();
           const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
