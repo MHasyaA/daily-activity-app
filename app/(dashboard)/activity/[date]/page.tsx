@@ -556,15 +556,19 @@ export default function ActivityDetailPage() {
             <Loader2 size={36} className="animate-spin text-rose-500" />
             <span className="text-sm text-slate-400 font-medium mt-3">Memuat aktivitas...</span>
           </div>
-        ) : status === 'LIBUR' ? (
+        ) : status === 'LIBUR' || status === 'GANTI_LIBUR' ? (
           <div className="py-16 px-6 bg-slate-50 rounded-2xl border border-slate-200 text-center flex flex-col items-center justify-center max-w-xl mx-auto space-y-4">
             <div className="p-4 bg-slate-100 text-slate-500 rounded-full">
-              <Palmtree size={32} />
+              {status === 'LIBUR' ? <Palmtree size={32} /> : <Clock size={32} />}
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-lg">Hari Ini Libur / Cuti</h3>
+              <h3 className="font-bold text-slate-800 text-lg">
+                {status === 'LIBUR' ? 'Hari Ini Libur / Cuti' : 'Hari Ini Ganti Libur'}
+              </h3>
               <p className="text-sm text-slate-500 mt-1">
-                Anda menandai hari ini sebagai libur. Tidak perlu memasukkan rencana maupun realisasi kegiatan.
+                {status === 'LIBUR' 
+                  ? 'Anda menandai hari ini sebagai libur. Tidak perlu memasukkan rencana maupun realisasi kegiatan.'
+                  : 'Anda menandai hari ini sebagai ganti libur. Jam planning telah otomatis ditambah 8 jam.'}
               </p>
             </div>
           </div>

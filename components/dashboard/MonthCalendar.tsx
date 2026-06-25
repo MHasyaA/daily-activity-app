@@ -175,7 +175,7 @@ export default function MonthCalendar({
                   <>
                     <div className="flex items-center justify-between">
                       {statusBadge}
-                      {activity.status !== 'LIBUR' && (
+                      {activity.status !== 'LIBUR' && activity.status !== 'GANTI_LIBUR' && (
                         <span className="text-[9px] font-extrabold text-slate-500">
                           {formatHours(activity.totalActualHours)}
                         </span>
@@ -183,7 +183,7 @@ export default function MonthCalendar({
                     </div>
                     
                     {/* Activity descriptions list preview */}
-                    {activity.status !== 'LIBUR' && activity.items && activity.items.length > 0 && (
+                    {activity.status !== 'LIBUR' && activity.status !== 'GANTI_LIBUR' && activity.items && activity.items.length > 0 && (
                       <div className="space-y-1 mt-1 pt-1 border-t border-slate-100/60 max-h-[48px] overflow-hidden hidden md:block">
                          {activity.items.slice(0, 2).map((item) => (
                           <div 
