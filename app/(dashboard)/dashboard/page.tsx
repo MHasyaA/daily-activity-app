@@ -91,6 +91,7 @@ export default async function DashboardPage({
 
   let monthPlanHours = 0;
   let monthActualHours = 0;
+  let monthEffectiveActualHours = 0;
   let wfoCount = 0;
   let wfhCount = 0;
   let monthOvertimeHours = 0;
@@ -122,6 +123,8 @@ export default async function DashboardPage({
       if (activity) {
         monthPlanHours += totalPlanHours;
         monthActualHours += totalActualHours;
+        const isWeekendOrHoliday = isWeekend || isHoliday;
+        monthEffectiveActualHours += isWeekendOrHoliday ? (totalActualHours * 2) : totalActualHours;
         if (activity.status === 'WFO') wfoCount++;
         if (activity.status === 'WFH') wfhCount++;
       }
@@ -159,7 +162,7 @@ export default async function DashboardPage({
     });
   }
 
-  monthOvertimeHours = monthActualHours > monthPlanHours ? monthActualHours - monthPlanHours : 0;
+  monthOvertimeHours = monthEffectiveActualHours > monthPlanHours ? monthEffectiveActualHours - monthPlanHours : 0;
 
   // Calculate category distributions for the month
   const categoryHours: Record<string, number> = {
@@ -222,6 +225,7 @@ export default async function DashboardPage({
 
   let yearPlanHours = 0;
   let yearActualHours = 0;
+  let yearEffectiveActualHours = 0;
   let yearWfoCount = 0;
   let yearWfhCount = 0;
 
@@ -232,11 +236,18 @@ export default async function DashboardPage({
     yearPlanHours += planH;
     yearActualHours += actualH;
 
+    const actDate = new Date(act.date);
+    const dayOfWeek = actDate.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isHoliday = isIndonesianHoliday(actDate);
+    const isWeekendOrHoliday = isWeekend || isHoliday;
+    yearEffectiveActualHours += isWeekendOrHoliday ? (actualH * 2) : actualH;
+
     if (act.status === 'WFO') yearWfoCount++;
     if (act.status === 'WFH') yearWfhCount++;
   }
 
-  const yearOvertimeHours = yearActualHours > yearPlanHours ? yearActualHours - yearPlanHours : 0;
+  const yearOvertimeHours = yearEffectiveActualHours > yearPlanHours ? yearEffectiveActualHours - yearPlanHours : 0;
 
   // Next and Prev month links
   const prevMonthDate = new Date(yearVal, monthVal - 1, 1);
@@ -306,7 +317,7 @@ export default async function DashboardPage({
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lembur Tahun Ini</p>
                 <h3 className="text-base font-extrabold text-slate-800 mt-0.5">
-                  +{yearOvertimeHours.toFixed(1)} jam
+                  +{yearOvertimeHours.toFixed(1)} jam / {(yearOvertimeHours / 8).toFixed(1)} day
                 </h3>
               </div>
             </div>
@@ -371,7 +382,7 @@ export default async function DashboardPage({
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lembur Bulan Ini</p>
                   <h3 className="text-base font-extrabold text-slate-800 mt-0.5">
-                    +{monthOvertimeHours.toFixed(1)} jam
+                    +{monthOvertimeHours.toFixed(1)} jam / {(monthOvertimeHours / 8).toFixed(1)} day
                   </h3>
                 </div>
               </div>

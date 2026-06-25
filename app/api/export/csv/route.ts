@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
 import { calculateDuration } from '@/lib/utils';
+import { isIndonesianHoliday } from '@/lib/holidays';
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -148,8 +149,14 @@ export async function GET(req: NextRequest) {
 
           // Calculate overtime
           const planHours = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
-          const actualHours = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
-          const overtime = actualHours > planHours ? (actualHours - planHours).toFixed(1) : '0';
+          let actualHours = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
+          const actDate = new Date(act.date);
+          const dayOfWeek = actDate.getDay();
+          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+          const isHoliday = isIndonesianHoliday(actDate);
+          const isWeekendOrHoliday = isWeekend || isHoliday;
+          const effectiveActualHours = isWeekendOrHoliday ? (actualHours * 2) : actualHours;
+          const overtime = effectiveActualHours > planHours ? (effectiveActualHours - planHours).toFixed(1) : '0';
 
           const items = [
             ...act.planItems.map(item => ({ ...item, typeLabel: 'PLAN' })),
