@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, MapPin, Home, Palmtree } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Home, Palmtree, Clock } from 'lucide-react';
 
 export interface CalendarActivityItem {
   id: string;
@@ -15,7 +15,7 @@ export interface CalendarActivityItem {
 export interface AdminCalendarActivity {
   id: string;
   date: string;
-  status: 'WFO' | 'WFH' | 'LIBUR';
+  status: 'WFO' | 'WFH' | 'LIBUR' | 'GANTI_LIBUR';
   note: string | null;
   attachments?: { id: string; url: string }[];
   managerNotes: string | null;
@@ -119,6 +119,7 @@ export default function AdminMonthCalendar({
           const wfoCount = day.activities.filter(act => act.status === 'WFO').length;
           const wfhCount = day.activities.filter(act => act.status === 'WFH').length;
           const liburCount = day.activities.filter(act => act.status === 'LIBUR').length;
+          const gantiLiburCount = day.activities.filter(act => act.status === 'GANTI_LIBUR').length;
           const totalLogs = day.activities.length;
 
           return (
@@ -183,6 +184,12 @@ export default function AdminMonthCalendar({
                           <span>{liburCount}</span>
                         </span>
                       )}
+                      {gantiLiburCount > 0 && (
+                        <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 text-[8px] font-extrabold">
+                          <Clock size={8} className="shrink-0" />
+                          <span>{gantiLiburCount}</span>
+                        </span>
+                      )}
                     </div>
 
                     {/* Employee list snippet for larger screens */}
@@ -193,6 +200,8 @@ export default function AdminMonthCalendar({
                         let activityDesc = '';
                         if (act.status === 'LIBUR') {
                           activityDesc = 'Libur / Cuti';
+                        } else if (act.status === 'GANTI_LIBUR') {
+                          activityDesc = 'Ganti Libur';
                         } else if (hasActual) {
                           activityDesc = `[Act] ${act.actualItems[0].description}`;
                         } else if (hasPlan) {
@@ -209,6 +218,8 @@ export default function AdminMonthCalendar({
                                 ? 'bg-blue-50/60 text-blue-800 border border-blue-100/30'
                                 : act.status === 'WFH'
                                 ? 'bg-emerald-50/60 text-emerald-800 border border-emerald-100/30'
+                                : act.status === 'GANTI_LIBUR'
+                                ? 'bg-amber-50 text-amber-700 border border-amber-100/30'
                                 : 'bg-slate-50 text-slate-600 border border-slate-150'
                             }`}
                           >

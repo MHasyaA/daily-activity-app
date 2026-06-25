@@ -148,7 +148,7 @@ export async function GET(req: NextRequest) {
             : '-';
 
           // Calculate overtime
-          const planHours = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
+          const planHours = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0) + (act.status === 'GANTI_LIBUR' ? 8 : 0);
           const actualHours = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
           const actDate = new Date(act.date);
           const dayOfWeek = actDate.getDay();

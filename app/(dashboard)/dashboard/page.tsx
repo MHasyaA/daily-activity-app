@@ -111,7 +111,7 @@ export default async function DashboardPage({
     const activity = activities.find(act => format(new Date(act.date), 'yyyy-MM-dd') === dateStr);
 
     const totalPlanHours = activity
-      ? activity.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0)
+      ? activity.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0) + (activity.status === 'GANTI_LIBUR' ? 8 : 0)
       : 0;
 
     const totalActualHours = activity
@@ -230,7 +230,7 @@ export default async function DashboardPage({
   let yearWfhCount = 0;
 
   for (const act of yearlyActivities) {
-    const planH = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
+    const planH = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0) + (act.status === 'GANTI_LIBUR' ? 8 : 0);
     const actualH = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
 
     yearPlanHours += planH;

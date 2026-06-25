@@ -48,6 +48,7 @@ enum Status {
   WFO
   WFH
   LIBUR
+  GANTI_LIBUR
 }
 
 model ActivityItem {

@@ -37,7 +37,7 @@ interface ActivityItem {
 
 interface ActivityData {
   id: string;
-  status: 'WFO' | 'WFH' | 'LIBUR';
+  status: 'WFO' | 'WFH' | 'LIBUR' | 'GANTI_LIBUR';
   note: string | null;
   attachments: { id: string; url: string }[];
   planItems: ActivityItem[];
@@ -216,7 +216,7 @@ export default function AdminDashboardPage() {
                   {reportData.map((row) => {
                     const activity = row.activity;
                     const planHours = activity
-                      ? activity.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0)
+                      ? activity.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0) + (activity.status === 'GANTI_LIBUR' ? 8 : 0)
                       : 0;
                     const actualHours = activity
                       ? activity.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0)
@@ -252,6 +252,10 @@ export default function AdminDashboardPage() {
                             ) : activity.status === 'WFH' ? (
                               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
                                 WFH
+                              </span>
+                            ) : activity.status === 'GANTI_LIBUR' ? (
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100">
+                                Ganti Libur
                               </span>
                             ) : (
                               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">

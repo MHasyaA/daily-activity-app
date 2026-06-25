@@ -15,7 +15,8 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
-  Calendar
+  Calendar,
+  Clock
 } from 'lucide-react';
 import Topbar from '@/components/layout/Topbar';
 import ActivityColumn from '@/components/activity/ActivityColumn';
@@ -24,7 +25,7 @@ import { ActivityItemData } from '@/components/activity/ActivityItemCard';
 
 interface ActivityData {
   id: string;
-  status: 'WFO' | 'WFH' | 'LIBUR';
+  status: 'WFO' | 'WFH' | 'LIBUR' | 'GANTI_LIBUR';
   note: string | null;
   attachments: { id: string; url: string }[];
   managerNotes: string | null;
@@ -46,7 +47,7 @@ export default function ActivityDetailPage() {
   const [saving, setSaving] = useState(false);
   const [activity, setActivity] = useState<ActivityData | null>(null);
   const [targetUser, setTargetUser] = useState<{ name: string } | null>(null);
-  const [status, setStatus] = useState<'WFO' | 'WFH' | 'LIBUR' | ''>('');
+  const [status, setStatus] = useState<'WFO' | 'WFH' | 'LIBUR' | 'GANTI_LIBUR' | ''>('');
   const [note, setNote] = useState('');
   const [attachments, setAttachments] = useState<{ id: string; url: string }[]>([]);
   const [managerNotes, setManagerNotes] = useState('');
@@ -105,7 +106,7 @@ export default function ActivityDetailPage() {
   }, [fetchData]);
 
   // Handle status update (presence check-in)
-  const handleStatusChange = async (newStatus: 'WFO' | 'WFH' | 'LIBUR') => {
+  const handleStatusChange = async (newStatus: 'WFO' | 'WFH' | 'LIBUR' | 'GANTI_LIBUR') => {
     setStatus(newStatus);
     setSaving(true);
     try {
@@ -485,6 +486,12 @@ export default function ActivityDetailPage() {
                     Libur / Cuti
                   </span>
                 )}
+                {status === 'GANTI_LIBUR' && (
+                  <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-100">
+                    <Clock size={14} className="text-amber-600" />
+                    Ganti Libur
+                  </span>
+                )}
                 {!status && (
                   <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
                     <AlertCircle size={14} className="text-amber-600" />
@@ -493,7 +500,7 @@ export default function ActivityDetailPage() {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-md">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 max-w-lg">
                 <button
                   onClick={() => handleStatusChange('WFO')}
                   className={`py-3 px-4 rounded-xl border font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
@@ -515,6 +522,17 @@ export default function ActivityDetailPage() {
                 >
                   <Home size={16} />
                   WFH
+                </button>
+                <button
+                  onClick={() => handleStatusChange('GANTI_LIBUR')}
+                  className={`py-3 px-4 rounded-xl border font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
+                    status === 'GANTI_LIBUR'
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-600/10'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <Clock size={16} />
+                  GANTI LIBUR
                 </button>
                 <button
                   onClick={() => handleStatusChange('LIBUR')}
@@ -720,7 +738,7 @@ export default function ActivityDetailPage() {
             <div>
               <h3 className="font-bold text-slate-800 text-lg">Kehadiran Belum Diisi</h3>
               <p className="text-sm text-slate-500 mt-1">
-                Silakan pilih status kehadiran (WFO, WFH, atau LIBUR) di atas terlebih dahulu untuk memulai pencatatan.
+                Silakan pilih status kehadiran di atas terlebih dahulu untuk memulai pencatatan.
               </p>
             </div>
           </div>

@@ -185,6 +185,7 @@ export default async function HistoryPage({
                   <option value="ALL">Semua Status</option>
                   <option value="WFO">WFO</option>
                   <option value="WFH">WFH</option>
+                  <option value="GANTI_LIBUR">Ganti Libur</option>
                   <option value="LIBUR">Libur</option>
                 </select>
                 <button
@@ -238,7 +239,7 @@ export default async function HistoryPage({
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
                   {activities.map((act) => {
-                    const planHours = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
+                    const planHours = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0) + (act.status === 'GANTI_LIBUR' ? 8 : 0);
                     const actualHours = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
                     const formattedDate = format(new Date(act.date), 'EEEE, dd MMM yyyy', { locale: localeId });
                     const dateUrl = format(new Date(act.date), 'yyyy-MM-dd');
@@ -264,6 +265,11 @@ export default async function HistoryPage({
                           {act.status === 'LIBUR' && (
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
                               Libur
+                            </span>
+                          )}
+                          {act.status === 'GANTI_LIBUR' && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100">
+                              Ganti Libur
                             </span>
                           )}
                         </td>

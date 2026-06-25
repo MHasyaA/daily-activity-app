@@ -7,7 +7,8 @@ import {
   MapPin, 
   Home, 
   Palmtree, 
-  Plus 
+  Plus,
+  Clock
 } from 'lucide-react';
 import { formatHours } from '@/lib/utils';
 
@@ -21,7 +22,7 @@ export interface CalendarDay {
   holidayName?: string | null;
   activity?: {
     id: string;
-    status: 'WFO' | 'WFH' | 'LIBUR';
+    status: 'WFO' | 'WFH' | 'LIBUR' | 'GANTI_LIBUR';
     totalPlanHours: number;
     totalActualHours: number;
     previewType?: 'PLAN' | 'ACTUAL';
@@ -119,6 +120,13 @@ export default function MonthCalendar({
               <span className="inline-flex items-center gap-0.5 px-1 sm:px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200" title="Libur">
                 <Palmtree size={9} />
                 <span className="hidden sm:inline">Libur</span>
+              </span>
+            );
+          } else if (activity?.status === 'GANTI_LIBUR') {
+            statusBadge = (
+              <span className="inline-flex items-center gap-0.5 px-1 sm:px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-100" title="Ganti Libur">
+                <Clock size={9} />
+                <span className="hidden sm:inline">Ganti Libur</span>
               </span>
             );
           }

@@ -502,6 +502,11 @@ function AdminOverviewContent() {
                               <Home size={10} />
                               WFH
                             </span>
+                          ) : activity.status === 'GANTI_LIBUR' ? (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-100">
+                              <Clock size={10} />
+                              Ganti Libur
+                            </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200">
                               <Palmtree size={10} />
