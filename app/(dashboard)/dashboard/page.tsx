@@ -121,7 +121,10 @@ export default async function DashboardPage({
     // Accumulate metrics for current month only
     if (isCurrentMonth) {
       if (activity) {
-        monthPlanHours += totalPlanHours;
+        const hasActualItems = activity.actualItems && activity.actualItems.length > 0;
+        if (hasActualItems) {
+          monthPlanHours += totalPlanHours;
+        }
         monthActualHours += totalActualHours;
         const isWeekendOrHoliday = isWeekend || isHoliday;
         monthEffectiveActualHours += isWeekendOrHoliday ? (totalActualHours * 2) : totalActualHours;
@@ -233,7 +236,10 @@ export default async function DashboardPage({
     const planH = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0) + (act.status === 'GANTI_LIBUR' ? 8 : 0);
     const actualH = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
 
-    yearPlanHours += planH;
+    const hasActualItems = act.actualItems && act.actualItems.length > 0;
+    if (hasActualItems) {
+      yearPlanHours += planH;
+    }
     yearActualHours += actualH;
 
     const actDate = new Date(act.date);

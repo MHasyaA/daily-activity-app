@@ -1,9 +1,11 @@
 # Issue: Update Logika dan Tampilan Data Lembur (Overtime)
 
 ## Deskripsi Singkat
-Terdapat dua kebutuhan utama terkait pembaruan fitur lembur (overtime) pada aplikasi aktivitas harian:
+Terdapat beberapa kebutuhan terkait pembaruan fitur lembur (overtime) pada aplikasi aktivitas harian:
 1. **Penyesuaian Logika Perhitungan Jam Lembur:** Perubahan perhitungan jam lembur khusus untuk pengerjaan di hari libur (weekend dan libur nasional).
 2. **Pembaruan Tampilan Card Data Lembur:** Penambahan informasi estimasi jumlah hari lembur berdasarkan total jam lembur pada Card.
+3. **Update Logika Jam Planning:** Jam planning diabaikan dalam total bulanan jika jam actual belum diisi (mencegah pengurangan total lembur prematur).
+4. **Penambahan Card Overview Lembur:** Menampilkan leaderboard lembur tahunan di Admin Dashboard.
 
 Dokumen ini ditulis secara *high-level* sebagai acuan implementasi oleh programmer atau model AI *coding assistant*.
 
@@ -56,6 +58,47 @@ Card data lembur perlu dimodifikasi agar turut menampilkan estimasi jumlah hari 
 
 ---
 
+## 3. Update Logika Jam Planning pada Total Lembur Bulanan
+
+### Kondisi Saat Ini (Current Behavior)
+Jam planning selalu ditambahkan ke total bulanan, meskipun user merencanakan untuk 1-2 minggu ke depan. Hal ini menyebabkan total jam lembur (Actual - Plan) menjadi turun secara prematur.
+
+### Ekspektasi Perubahan (Expected Behavior)
+Jam planning hanya akan dihitung masuk ke total bulanan **jika** jam actual pada hari tersebut sudah terisi (minimal ada 1 log *Actual*).
+
+### Task Checklist (Untuk Implementator)
+- [ ] Modifikasi loop kalkulasi metrik bulanan (contoh di `app/(dashboard)/dashboard/page.tsx`).
+- [ ] Tambahkan pengecekan kondisi `hasActualItems` (misal array `actualItems` memiliki `length > 0`).
+- [ ] Pastikan `monthPlanHours` hanya ditambahkan dengan `totalPlanHours` jika pengecekan di atas bernilai `true` (tidak kosong).
+
+---
+
+## 4. Penambahan Card Overview: Jumlah Hari Lembur per Tahun
+
+### Kondisi Saat Ini (Current Behavior)
+Belum ada visualisasi total hari lembur akumulatif selama satu tahun per karyawan di dashboard Admin.
+
+### Ekspektasi Perubahan (Expected Behavior)
+Menampilkan daftar karyawan dengan jumlah hari lembur tertinggi dalam setahun (diurutkan menurun) pada halaman Admin/Manager. 
+
+- **Visualisasi (Horizontal Bar):**
+   - Menampilkan nama karyawan dan divisi.
+   - Bar persentase berdasarkan nilai tertinggi (untuk visualisasi bar width).
+   - Teks jumlah: `X Hari Y Jam` atau `X.X Hari`.
+   - Data difilter hanya yang nilainya `> 1 hari` (atau `> 8 jam`).
+   - **Penting:** Pastikan desain card *matching* dengan view utama (terutama card statistik yang ada di atasnya) sehingga tidak mengganggu estetika. Gunakan style yang konsisten seperti `bg-white p-6 rounded-2xl border border-slate-200 shadow-sm`.
+
+### Task Checklist (Untuk Implementator)
+- [ ] Buat API endpoint baru (misal `app/api/admin/yearly-overtime/route.ts`) untuk mengambil seluruh aktivitas tahun berjalan dan mengakumulasi selisih `Effective Actual Hours - Plan Hours`.
+- [ ] Di sisi UI `app/(dashboard)/admin/overview/page.tsx`, buat komponen list bar chart horizontal.
+- [ ] Hitung konversi hari dari total jam (standar: 1 hari kerja = 8 jam lembur).
+- [ ] Filter hasil agar hanya memunculkan karyawan dengan total akumulasi lembur > 8 jam.
+
+---
+
 ## Catatan Tambahan
 - Usahakan untuk memisahkan fungsi perhitungan konversi *day* maupun pengecekan *weekend* di luar komponen UI (buat file utilitas) agar *clean code* dan mudah dites.
 - Untuk pengecekan libur nasional, implementator dapat menggunakan asumsi sementara jika daftar/API libur nasional belum tersedia, namun harus diberikan komentar `// TODO:` agar mudah ditindaklanjuti.
+- **Konfirmasi Asumsi Khusus Poin 3 & 4:**
+  - Standar 1 hari kerja = 8 jam lembur.
+  - Jam plan diabaikan dari total bulanan jika jam actual pada hari tersebut masih kosong.

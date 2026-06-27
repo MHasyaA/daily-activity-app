@@ -53,6 +53,17 @@ function AdminOverviewContent() {
   const [activities, setActivities] = useState<ActivityData[]>([]);
   const [allUsers, setAllUsers] = useState<UserData[]>([]);
 
+  interface YearlyOvertimeData {
+    id: string;
+    name: string;
+    division: string | null;
+    overtimeHours: number;
+    overtimeDays: number;
+  }
+
+  const [yearlyOvertime, setYearlyOvertime] = useState<YearlyOvertimeData[]>([]);
+  const [yearlyOvertimeLoading, setYearlyOvertimeLoading] = useState(true);
+
   // Modal State
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedDateActivities, setSelectedDateActivities] = useState<ActivityData[]>([]);
@@ -123,6 +134,25 @@ function AdminOverviewContent() {
     fetchOverviewData();
   }, [fetchOverviewData]);
 
+  const fetchYearlyOvertime = useCallback(async () => {
+    setYearlyOvertimeLoading(true);
+    try {
+      const res = await fetch(`/api/admin/yearly-overtime?year=${yearVal}`);
+      const data = await res.json();
+      if (data.yearlyOvertime) {
+        setYearlyOvertime(data.yearlyOvertime);
+      }
+    } catch (err) {
+      console.error('Error fetching yearly overtime data:', err);
+    } finally {
+      setYearlyOvertimeLoading(false);
+    }
+  }, [yearVal]);
+
+  useEffect(() => {
+    fetchYearlyOvertime();
+  }, [fetchYearlyOvertime]);
+
   // Construct Calendar Days
   const days = useMemo(() => {
     const calendarDays: AdminCalendarDay[] = [];
@@ -187,6 +217,11 @@ function AdminOverviewContent() {
       totalPossibleLogs
     };
   }, [days, allUsers]);
+
+  const filteredYearlyOvertime = useMemo(() => {
+    if (!division) return yearlyOvertime;
+    return yearlyOvertime.filter(item => item.division === division);
+  }, [yearlyOvertime, division]);
 
   // Month navigation URLs
   const prevMonthDate = new Date(yearVal, monthVal - 1, 1);
@@ -397,6 +432,54 @@ function AdminOverviewContent() {
             </div>
           </div>
         )}
+
+        {/* Yearly Overtime Leaderboard */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm">Leaderboard Lembur Tahunan ({yearVal})</h3>
+              <p className="text-[10px] text-slate-400 font-medium mt-0.5">Karyawan dengan total lembur &gt; 1 hari (8 jam)</p>
+            </div>
+            <div className="p-2 bg-amber-50 rounded-xl text-amber-600">
+              <Clock size={18} />
+            </div>
+          </div>
+          {yearlyOvertimeLoading ? (
+            <div className="py-8 flex flex-col items-center justify-center text-slate-400">
+              <Loader2 className="animate-spin text-rose-500 mb-2" size={24} />
+              <span className="text-xs font-semibold">Memuat data lembur...</span>
+            </div>
+          ) : filteredYearlyOvertime.length > 0 ? (
+            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+              {filteredYearlyOvertime.map((item) => {
+                const maxOvertime = filteredYearlyOvertime[0].overtimeDays;
+                const percentage = maxOvertime > 0 ? (item.overtimeDays / maxOvertime) * 100 : 0;
+                return (
+                  <div key={item.id} className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <div className="font-semibold text-slate-700">
+                        {item.name} <span className="text-[10px] text-slate-400 font-normal">({item.division || 'Umum'})</span>
+                      </div>
+                      <div className="font-bold text-slate-800">
+                        {item.overtimeDays.toFixed(1)} Hari <span className="text-[10px] text-slate-400 font-normal">({item.overtimeHours.toFixed(1)} jam)</span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2">
+                      <div
+                        className="bg-amber-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-8 text-center text-xs text-slate-400 font-semibold">
+              Tidak ada karyawan dengan lembur &gt; 1 hari di tahun ini.
+            </div>
+          )}
+        </div>
 
         {/* AdminMonthCalendar */}
         {loading ? (
