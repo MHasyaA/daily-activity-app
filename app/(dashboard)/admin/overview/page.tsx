@@ -194,27 +194,68 @@ function AdminOverviewContent() {
     let actualLoggedCount = 0;
     let totalWfo = 0;
     let totalWfh = 0;
-    let totalLibur = 0;
+    let totalGantiLibur = 0;
+
+    // Initialize user counts
+    const userWfoMap: Record<string, number> = {};
+    const userWfhMap: Record<string, number> = {};
+    const userGantiLiburMap: Record<string, number> = {};
+
+    allUsers.forEach(u => {
+      userWfoMap[u.id] = 0;
+      userWfhMap[u.id] = 0;
+      userGantiLiburMap[u.id] = 0;
+    });
 
     currentMonthDays.forEach(day => {
       day.activities.forEach(act => {
         actualLoggedCount++;
-        if (act.status === 'WFO') totalWfo++;
-        if (act.status === 'WFH') totalWfh++;
-        if (act.status === 'LIBUR') totalLibur++;
+        if (act.status === 'WFO') {
+          totalWfo++;
+          if (userWfoMap[act.userId] !== undefined) userWfoMap[act.userId]++;
+        }
+        if (act.status === 'WFH') {
+          totalWfh++;
+          if (userWfhMap[act.userId] !== undefined) userWfhMap[act.userId]++;
+        }
+        if (act.status === 'GANTI_LIBUR') {
+          totalGantiLibur++;
+          if (userGantiLiburMap[act.userId] !== undefined) userGantiLiburMap[act.userId]++;
+        }
       });
     });
 
     const completionRate = totalPossibleLogs > 0 ? (actualLoggedCount / totalPossibleLogs) * 100 : 0;
+
+    const wfoList = allUsers.map(u => ({
+      id: u.id,
+      name: u.name,
+      count: userWfoMap[u.id] || 0
+    })).sort((a, b) => b.count - a.count);
+
+    const wfhList = allUsers.map(u => ({
+      id: u.id,
+      name: u.name,
+      count: userWfhMap[u.id] || 0
+    })).sort((a, b) => b.count - a.count);
+
+    const gantiLiburList = allUsers.map(u => ({
+      id: u.id,
+      name: u.name,
+      count: userGantiLiburMap[u.id] || 0
+    })).sort((a, b) => b.count - a.count);
 
     return {
       totalEmployees: allUsers.length,
       completionRate,
       wfoCount: totalWfo,
       wfhCount: totalWfh,
-      liburCount: totalLibur,
+      gantiLiburCount: totalGantiLibur,
       actualLoggedCount,
-      totalPossibleLogs
+      totalPossibleLogs,
+      wfoList,
+      wfhList,
+      gantiLiburList
     };
   }, [days, allUsers]);
 
@@ -303,20 +344,20 @@ function AdminOverviewContent() {
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-6 h-full">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm animate-pulse h-full min-h-[142px]" />
+                  <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm animate-pulse h-[210px]" />
                 ))}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-6 h-full">
                 {/* Total Employees */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-purple-50 rounded-xl text-purple-600">
-                      <Users size={24} />
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300 h-[210px]">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-purple-50 rounded-xl text-purple-600">
+                      <Users size={20} />
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Karyawan</p>
-                      <h4 className="text-2xl font-black text-slate-800 mt-0.5">
+                      <h4 className="text-lg font-black text-slate-800 mt-0.5">
                         {stats.totalEmployees} <span className="text-xs font-bold text-slate-400">orang</span>
                       </h4>
                     </div>
@@ -327,14 +368,14 @@ function AdminOverviewContent() {
                 </div>
 
                 {/* Total Fill Rate */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-rose-50 rounded-xl text-rose-600">
-                      <CheckCircle size={24} />
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300 h-[210px]">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-rose-50 rounded-xl text-rose-600">
+                      <CheckCircle size={20} />
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tingkat Pengisian</p>
-                      <h4 className="text-2xl font-black text-slate-800 mt-0.5">
+                      <h4 className="text-lg font-black text-slate-800 mt-0.5">
                         {stats.completionRate.toFixed(0)}%
                       </h4>
                     </div>
@@ -354,82 +395,112 @@ function AdminOverviewContent() {
                 </div>
 
                 {/* Total WFO */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
-                      <MapPin size={24} />
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300 h-[210px]">
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="p-2.5 bg-blue-50 rounded-xl text-blue-600">
+                      <MapPin size={20} />
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFO</p>
-                      <h4 className="text-2xl font-black text-slate-800 mt-0.5">
+                      <h4 className="text-lg font-black text-slate-800 mt-0.5">
                         {stats.wfoCount} <span className="text-xs font-bold text-slate-400">log</span>
                       </h4>
                     </div>
                   </div>
-                  <div className="mt-3 border-t border-slate-100 pt-2">
-                    <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1">
-                      <span>Persentase WFO</span>
-                      <span>{stats.actualLoggedCount > 0 ? ((stats.wfoCount / stats.actualLoggedCount) * 100).toFixed(0) : 0}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5">
-                      <div 
-                        className="bg-blue-500 h-1.5 rounded-full transition-all duration-500" 
-                        style={{ width: `${stats.actualLoggedCount > 0 ? (stats.wfoCount / stats.actualLoggedCount) * 100 : 0}%` }} 
-                      />
+                  <div className="flex-1 mt-3 border-t border-slate-100 pt-2 overflow-hidden flex flex-col justify-start">
+                    <div className="space-y-2 max-h-[110px] overflow-y-auto pr-1">
+                      {stats.wfoList.map((item) => {
+                        const maxCount = stats.wfoList[0]?.count || 1;
+                        const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                        return (
+                          <div key={item.id} className="space-y-0.5">
+                            <div className="flex justify-between items-center text-[10px]">
+                              <span className="font-semibold text-slate-700 truncate max-w-[85px]">{item.name}</span>
+                              <span className="font-bold text-slate-800 shrink-0">{item.count} hari</span>
+                            </div>
+                            <div className="w-full bg-slate-100 rounded-full h-1">
+                              <div
+                                className="bg-blue-500 h-1 rounded-full transition-all duration-300"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
 
                 {/* Total WFH */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
-                      <Home size={24} />
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300 h-[210px]">
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="p-2.5 bg-emerald-50 rounded-xl text-emerald-600">
+                      <Home size={20} />
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFH</p>
-                      <h4 className="text-2xl font-black text-slate-800 mt-0.5">
+                      <h4 className="text-lg font-black text-slate-800 mt-0.5">
                         {stats.wfhCount} <span className="text-xs font-bold text-slate-400">log</span>
                       </h4>
                     </div>
                   </div>
-                  <div className="mt-3 border-t border-slate-100 pt-2">
-                    <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1">
-                      <span>Persentase WFH</span>
-                      <span>{stats.actualLoggedCount > 0 ? ((stats.wfhCount / stats.actualLoggedCount) * 100).toFixed(0) : 0}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5">
-                      <div 
-                        className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" 
-                        style={{ width: `${stats.actualLoggedCount > 0 ? (stats.wfhCount / stats.actualLoggedCount) * 100 : 0}%` }} 
-                      />
+                  <div className="flex-1 mt-3 border-t border-slate-100 pt-2 overflow-hidden flex flex-col justify-start">
+                    <div className="space-y-2 max-h-[110px] overflow-y-auto pr-1">
+                      {stats.wfhList.map((item) => {
+                        const maxCount = stats.wfhList[0]?.count || 1;
+                        const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                        return (
+                          <div key={item.id} className="space-y-0.5">
+                            <div className="flex justify-between items-center text-[10px]">
+                              <span className="font-semibold text-slate-700 truncate max-w-[85px]">{item.name}</span>
+                              <span className="font-bold text-slate-800 shrink-0">{item.count} hari</span>
+                            </div>
+                            <div className="w-full bg-slate-100 rounded-full h-1">
+                              <div
+                                className="bg-emerald-500 h-1 rounded-full transition-all duration-300"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
 
-                {/* Total Off / Cuti */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-slate-100 rounded-xl text-slate-500">
-                      <Palmtree size={24} />
+                {/* Total Ganti Libur */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 hover:border-slate-300 h-[210px]">
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="p-2.5 bg-amber-50 rounded-xl text-amber-600">
+                      <Palmtree size={20} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Cuti/Libur</p>
-                      <h4 className="text-2xl font-black text-slate-800 mt-0.5">
-                        {stats.liburCount} <span className="text-xs font-bold text-slate-400">log</span>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Ganti Libur</p>
+                      <h4 className="text-lg font-black text-slate-800 mt-0.5">
+                        {stats.gantiLiburCount} <span className="text-xs font-bold text-slate-400">log</span>
                       </h4>
                     </div>
                   </div>
-                  <div className="mt-3 border-t border-slate-100 pt-2">
-                    <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold mb-1">
-                      <span>Persentase Libur</span>
-                      <span>{stats.actualLoggedCount > 0 ? ((stats.liburCount / stats.actualLoggedCount) * 100).toFixed(0) : 0}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5">
-                      <div 
-                        className="bg-slate-400 h-1.5 rounded-full transition-all duration-500" 
-                        style={{ width: `${stats.actualLoggedCount > 0 ? (stats.liburCount / stats.actualLoggedCount) * 100 : 0}%` }} 
-                      />
+                  <div className="flex-1 mt-3 border-t border-slate-100 pt-2 overflow-hidden flex flex-col justify-start">
+                    <div className="space-y-2 max-h-[110px] overflow-y-auto pr-1">
+                      {stats.gantiLiburList.map((item) => {
+                        const maxCount = stats.gantiLiburList[0]?.count || 1;
+                        const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                        return (
+                          <div key={item.id} className="space-y-0.5">
+                            <div className="flex justify-between items-center text-[10px]">
+                              <span className="font-semibold text-slate-700 truncate max-w-[85px]">{item.name}</span>
+                              <span className="font-bold text-slate-800 shrink-0">{item.count} hari</span>
+                            </div>
+                            <div className="w-full bg-slate-100 rounded-full h-1">
+                              <div
+                                className="bg-amber-500 h-1 rounded-full transition-all duration-300"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
