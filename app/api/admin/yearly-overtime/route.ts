@@ -66,7 +66,8 @@ export async function GET(req: NextRequest) {
 
         // Apply new logic: only include plan if actual is filled
         const hasActualItems = act.actualItems && act.actualItems.length > 0;
-        if (hasActualItems) {
+        const isGantiLibur = act.status === 'GANTI_LIBUR';
+        if (hasActualItems || isGantiLibur) {
           totalPlanHours += planH;
         }
 

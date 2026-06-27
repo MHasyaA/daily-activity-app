@@ -122,7 +122,8 @@ export default async function DashboardPage({
     if (isCurrentMonth) {
       if (activity) {
         const hasActualItems = activity.actualItems && activity.actualItems.length > 0;
-        if (hasActualItems) {
+        const isGantiLibur = activity.status === 'GANTI_LIBUR';
+        if (hasActualItems || isGantiLibur) {
           monthPlanHours += totalPlanHours;
         }
         monthActualHours += totalActualHours;
@@ -237,7 +238,8 @@ export default async function DashboardPage({
     const actualH = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
 
     const hasActualItems = act.actualItems && act.actualItems.length > 0;
-    if (hasActualItems) {
+    const isGantiLibur = act.status === 'GANTI_LIBUR';
+    if (hasActualItems || isGantiLibur) {
       yearPlanHours += planH;
     }
     yearActualHours += actualH;
