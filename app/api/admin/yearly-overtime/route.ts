@@ -53,18 +53,21 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Calculate overtime for each user
-    const userOvertimeList = users.map(user => {
+    // Calculate stats for each user
+    const userStatsList = users.map(user => {
       const userActivities = activities.filter(act => act.userId === user.id);
       
       let totalPlanHours = 0;
       let totalEffectiveActualHours = 0;
+      let wfoCount = 0;
+      let wfhCount = 0;
+      let gantiLiburCount = 0;
 
       for (const act of userActivities) {
+        // Overtime calculations
         const planH = act.planItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0) + (act.status === 'GANTI_LIBUR' ? 8 : 0);
         const actualH = act.actualItems.reduce((acc, item) => acc + calculateDuration(item.startTime, item.endTime), 0);
 
-        // Apply new logic: only include plan if actual is filled
         const hasActualItems = act.actualItems && act.actualItems.length > 0;
         const isGantiLibur = act.status === 'GANTI_LIBUR';
         if (hasActualItems || isGantiLibur) {
@@ -77,6 +80,11 @@ export async function GET(req: NextRequest) {
         const isHoliday = isIndonesianHoliday(actDate);
         const isWeekendOrHoliday = isWeekend || isHoliday;
         totalEffectiveActualHours += isWeekendOrHoliday ? (actualH * 2) : actualH;
+
+        // Activity status counts
+        if (act.status === 'WFO') wfoCount++;
+        if (act.status === 'WFH') wfhCount++;
+        if (act.status === 'GANTI_LIBUR') gantiLiburCount++;
       }
 
       const overtimeHours = totalEffectiveActualHours > totalPlanHours ? totalEffectiveActualHours - totalPlanHours : 0;
@@ -88,15 +96,68 @@ export async function GET(req: NextRequest) {
         division: user.division,
         overtimeHours,
         overtimeDays,
+        wfoCount,
+        wfhCount,
+        gantiLiburCount,
       };
     });
 
-    // Sort descending by overtimeDays and filter those with overtimeDays > 1 (i.e. > 8 hours)
-    const filteredList = userOvertimeList
+    // Yearly overtime leaderboard (filtered > 1 day)
+    const yearlyOvertime = userStatsList
       .filter(item => item.overtimeDays > 1)
-      .sort((a, b) => b.overtimeDays - a.overtimeDays);
+      .sort((a, b) => b.overtimeDays - a.overtimeDays)
+      .map(item => ({
+        id: item.id,
+        name: item.name,
+        division: item.division,
+        overtimeHours: item.overtimeHours,
+        overtimeDays: item.overtimeDays,
+      }));
 
-    return NextResponse.json({ yearlyOvertime: filteredList });
+    // WFO leaderboard (sorted descending by wfoCount)
+    const wfoList = [...userStatsList]
+      .sort((a, b) => b.wfoCount - a.wfoCount)
+      .map(item => ({
+        id: item.id,
+        name: item.name,
+        division: item.division,
+        count: item.wfoCount,
+      }));
+
+    // WFH leaderboard (sorted descending by wfhCount)
+    const wfhList = [...userStatsList]
+      .sort((a, b) => b.wfhCount - a.wfhCount)
+      .map(item => ({
+        id: item.id,
+        name: item.name,
+        division: item.division,
+        count: item.wfhCount,
+      }));
+
+    // Ganti Libur leaderboard (sorted descending by gantiLiburCount)
+    const gantiLiburList = [...userStatsList]
+      .sort((a, b) => b.gantiLiburCount - a.gantiLiburCount)
+      .map(item => ({
+        id: item.id,
+        name: item.name,
+        division: item.division,
+        count: item.gantiLiburCount,
+      }));
+
+    // Sum totals for headers
+    const totalWfo = userStatsList.reduce((acc, item) => acc + item.wfoCount, 0);
+    const totalWfh = userStatsList.reduce((acc, item) => acc + item.wfhCount, 0);
+    const totalGantiLibur = userStatsList.reduce((acc, item) => acc + item.gantiLiburCount, 0);
+
+    return NextResponse.json({
+      yearlyOvertime,
+      wfoList,
+      wfhList,
+      gantiLiburList,
+      totalWfo,
+      totalWfh,
+      totalGantiLibur,
+    });
   } catch (error) {
     console.error('Error fetching yearly overtime overview:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

@@ -61,7 +61,17 @@ function AdminOverviewContent() {
     overtimeDays: number;
   }
 
+  interface YearlyLeaderboardItem {
+    id: string;
+    name: string;
+    division: string | null;
+    count: number;
+  }
+
   const [yearlyOvertime, setYearlyOvertime] = useState<YearlyOvertimeData[]>([]);
+  const [yearlyWfoList, setYearlyWfoList] = useState<YearlyLeaderboardItem[]>([]);
+  const [yearlyWfhList, setYearlyWfhList] = useState<YearlyLeaderboardItem[]>([]);
+  const [yearlyGantiLiburList, setYearlyGantiLiburList] = useState<YearlyLeaderboardItem[]>([]);
   const [yearlyOvertimeLoading, setYearlyOvertimeLoading] = useState(true);
 
   // Modal State
@@ -142,6 +152,15 @@ function AdminOverviewContent() {
       if (data.yearlyOvertime) {
         setYearlyOvertime(data.yearlyOvertime);
       }
+      if (data.wfoList) {
+        setYearlyWfoList(data.wfoList);
+      }
+      if (data.wfhList) {
+        setYearlyWfhList(data.wfhList);
+      }
+      if (data.gantiLiburList) {
+        setYearlyGantiLiburList(data.gantiLiburList);
+      }
     } catch (err) {
       console.error('Error fetching yearly overtime data:', err);
     } finally {
@@ -192,70 +211,18 @@ function AdminOverviewContent() {
     const currentMonthDays = days.filter(d => d.isCurrentMonth);
     const totalPossibleLogs = currentMonthDays.length * allUsers.length;
     let actualLoggedCount = 0;
-    let totalWfo = 0;
-    let totalWfh = 0;
-    let totalGantiLibur = 0;
-
-    // Initialize user counts
-    const userWfoMap: Record<string, number> = {};
-    const userWfhMap: Record<string, number> = {};
-    const userGantiLiburMap: Record<string, number> = {};
-
-    allUsers.forEach(u => {
-      userWfoMap[u.id] = 0;
-      userWfhMap[u.id] = 0;
-      userGantiLiburMap[u.id] = 0;
-    });
 
     currentMonthDays.forEach(day => {
-      day.activities.forEach(act => {
-        actualLoggedCount++;
-        if (act.status === 'WFO') {
-          totalWfo++;
-          if (userWfoMap[act.userId] !== undefined) userWfoMap[act.userId]++;
-        }
-        if (act.status === 'WFH') {
-          totalWfh++;
-          if (userWfhMap[act.userId] !== undefined) userWfhMap[act.userId]++;
-        }
-        if (act.status === 'GANTI_LIBUR') {
-          totalGantiLibur++;
-          if (userGantiLiburMap[act.userId] !== undefined) userGantiLiburMap[act.userId]++;
-        }
-      });
+      actualLoggedCount += day.activities.length;
     });
 
     const completionRate = totalPossibleLogs > 0 ? (actualLoggedCount / totalPossibleLogs) * 100 : 0;
 
-    const wfoList = allUsers.map(u => ({
-      id: u.id,
-      name: u.name,
-      count: userWfoMap[u.id] || 0
-    })).sort((a, b) => b.count - a.count);
-
-    const wfhList = allUsers.map(u => ({
-      id: u.id,
-      name: u.name,
-      count: userWfhMap[u.id] || 0
-    })).sort((a, b) => b.count - a.count);
-
-    const gantiLiburList = allUsers.map(u => ({
-      id: u.id,
-      name: u.name,
-      count: userGantiLiburMap[u.id] || 0
-    })).sort((a, b) => b.count - a.count);
-
     return {
       totalEmployees: allUsers.length,
       completionRate,
-      wfoCount: totalWfo,
-      wfhCount: totalWfh,
-      gantiLiburCount: totalGantiLibur,
       actualLoggedCount,
-      totalPossibleLogs,
-      wfoList,
-      wfhList,
-      gantiLiburList
+      totalPossibleLogs
     };
   }, [days, allUsers]);
 
@@ -263,6 +230,33 @@ function AdminOverviewContent() {
     if (!division) return yearlyOvertime;
     return yearlyOvertime.filter(item => item.division === division);
   }, [yearlyOvertime, division]);
+
+  const filteredYearlyWfoList = useMemo(() => {
+    if (!division) return yearlyWfoList;
+    return yearlyWfoList.filter(item => item.division === division);
+  }, [yearlyWfoList, division]);
+
+  const filteredYearlyWfhList = useMemo(() => {
+    if (!division) return yearlyWfhList;
+    return yearlyWfhList.filter(item => item.division === division);
+  }, [yearlyWfhList, division]);
+
+  const filteredYearlyGantiLiburList = useMemo(() => {
+    if (!division) return yearlyGantiLiburList;
+    return yearlyGantiLiburList.filter(item => item.division === division);
+  }, [yearlyGantiLiburList, division]);
+
+  const displayTotalWfo = useMemo(() => {
+    return filteredYearlyWfoList.reduce((acc, item) => acc + item.count, 0);
+  }, [filteredYearlyWfoList]);
+
+  const displayTotalWfh = useMemo(() => {
+    return filteredYearlyWfhList.reduce((acc, item) => acc + item.count, 0);
+  }, [filteredYearlyWfhList]);
+
+  const displayTotalGantiLibur = useMemo(() => {
+    return filteredYearlyGantiLiburList.reduce((acc, item) => acc + item.count, 0);
+  }, [filteredYearlyGantiLiburList]);
 
   // Month navigation URLs
   const prevMonthDate = new Date(yearVal, monthVal - 1, 1);
@@ -401,33 +395,44 @@ function AdminOverviewContent() {
                       <MapPin size={20} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFO</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFO (Tahun Ini)</p>
                       <h4 className="text-lg font-black text-slate-800 mt-0.5">
-                        {stats.wfoCount} <span className="text-xs font-bold text-slate-400">log</span>
+                        {yearlyOvertimeLoading ? '...' : displayTotalWfo} <span className="text-xs font-bold text-slate-400">log</span>
                       </h4>
                     </div>
                   </div>
                   <div className="flex-1 mt-3 border-t border-slate-100 pt-2 overflow-hidden flex flex-col justify-start">
-                    <div className="space-y-2 max-h-[110px] overflow-y-auto pr-1">
-                      {stats.wfoList.map((item) => {
-                        const maxCount = stats.wfoList[0]?.count || 1;
-                        const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
-                        return (
-                          <div key={item.id} className="space-y-0.5">
-                            <div className="flex justify-between items-center text-[10px]">
-                              <span className="font-semibold text-slate-700 truncate max-w-[85px]">{item.name}</span>
-                              <span className="font-bold text-slate-800 shrink-0">{item.count} hari</span>
+                    {yearlyOvertimeLoading ? (
+                      <div className="py-8 flex flex-col items-center justify-center text-slate-400">
+                        <Loader2 className="animate-spin text-rose-500 mb-2" size={16} />
+                        <span className="text-[10px] font-semibold">Memuat...</span>
+                      </div>
+                    ) : filteredYearlyWfoList.length > 0 ? (
+                      <div className="space-y-2 max-h-[110px] overflow-y-auto pr-1">
+                        {filteredYearlyWfoList.map((item) => {
+                          const maxCount = filteredYearlyWfoList[0]?.count || 1;
+                          const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                          return (
+                            <div key={item.id} className="space-y-0.5">
+                              <div className="flex justify-between items-center text-[10px]">
+                                <span className="font-semibold text-slate-700 truncate max-w-[85px]">{item.name}</span>
+                                <span className="font-bold text-slate-800 shrink-0">{item.count} hari</span>
+                              </div>
+                              <div className="w-full bg-slate-100 rounded-full h-1">
+                                <div
+                                  className="bg-blue-500 h-1 rounded-full transition-all duration-300"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
                             </div>
-                            <div className="w-full bg-slate-100 rounded-full h-1">
-                              <div
-                                className="bg-blue-500 h-1 rounded-full transition-all duration-300"
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="py-8 text-center text-[10px] text-slate-400 font-semibold">
+                        Tidak ada data.
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -438,33 +443,44 @@ function AdminOverviewContent() {
                       <Home size={20} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFH</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFH (Tahun Ini)</p>
                       <h4 className="text-lg font-black text-slate-800 mt-0.5">
-                        {stats.wfhCount} <span className="text-xs font-bold text-slate-400">log</span>
+                        {yearlyOvertimeLoading ? '...' : displayTotalWfh} <span className="text-xs font-bold text-slate-400">log</span>
                       </h4>
                     </div>
                   </div>
                   <div className="flex-1 mt-3 border-t border-slate-100 pt-2 overflow-hidden flex flex-col justify-start">
-                    <div className="space-y-2 max-h-[110px] overflow-y-auto pr-1">
-                      {stats.wfhList.map((item) => {
-                        const maxCount = stats.wfhList[0]?.count || 1;
-                        const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
-                        return (
-                          <div key={item.id} className="space-y-0.5">
-                            <div className="flex justify-between items-center text-[10px]">
-                              <span className="font-semibold text-slate-700 truncate max-w-[85px]">{item.name}</span>
-                              <span className="font-bold text-slate-800 shrink-0">{item.count} hari</span>
+                    {yearlyOvertimeLoading ? (
+                      <div className="py-8 flex flex-col items-center justify-center text-slate-400">
+                        <Loader2 className="animate-spin text-rose-500 mb-2" size={16} />
+                        <span className="text-[10px] font-semibold">Memuat...</span>
+                      </div>
+                    ) : filteredYearlyWfhList.length > 0 ? (
+                      <div className="space-y-2 max-h-[110px] overflow-y-auto pr-1">
+                        {filteredYearlyWfhList.map((item) => {
+                          const maxCount = filteredYearlyWfhList[0]?.count || 1;
+                          const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                          return (
+                            <div key={item.id} className="space-y-0.5">
+                              <div className="flex justify-between items-center text-[10px]">
+                                <span className="font-semibold text-slate-700 truncate max-w-[85px]">{item.name}</span>
+                                <span className="font-bold text-slate-800 shrink-0">{item.count} hari</span>
+                              </div>
+                              <div className="w-full bg-slate-100 rounded-full h-1">
+                                <div
+                                  className="bg-emerald-500 h-1 rounded-full transition-all duration-300"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
                             </div>
-                            <div className="w-full bg-slate-100 rounded-full h-1">
-                              <div
-                                className="bg-emerald-500 h-1 rounded-full transition-all duration-300"
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="py-8 text-center text-[10px] text-slate-400 font-semibold">
+                        Tidak ada data.
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -475,33 +491,44 @@ function AdminOverviewContent() {
                       <Palmtree size={20} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Ganti Libur</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Ganti Libur (Tahun Ini)</p>
                       <h4 className="text-lg font-black text-slate-800 mt-0.5">
-                        {stats.gantiLiburCount} <span className="text-xs font-bold text-slate-400">log</span>
+                        {yearlyOvertimeLoading ? '...' : displayTotalGantiLibur} <span className="text-xs font-bold text-slate-400">log</span>
                       </h4>
                     </div>
                   </div>
                   <div className="flex-1 mt-3 border-t border-slate-100 pt-2 overflow-hidden flex flex-col justify-start">
-                    <div className="space-y-2 max-h-[110px] overflow-y-auto pr-1">
-                      {stats.gantiLiburList.map((item) => {
-                        const maxCount = stats.gantiLiburList[0]?.count || 1;
-                        const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
-                        return (
-                          <div key={item.id} className="space-y-0.5">
-                            <div className="flex justify-between items-center text-[10px]">
-                              <span className="font-semibold text-slate-700 truncate max-w-[85px]">{item.name}</span>
-                              <span className="font-bold text-slate-800 shrink-0">{item.count} hari</span>
+                    {yearlyOvertimeLoading ? (
+                      <div className="py-8 flex flex-col items-center justify-center text-slate-400">
+                        <Loader2 className="animate-spin text-rose-500 mb-2" size={16} />
+                        <span className="text-[10px] font-semibold">Memuat...</span>
+                      </div>
+                    ) : filteredYearlyGantiLiburList.length > 0 ? (
+                      <div className="space-y-2 max-h-[110px] overflow-y-auto pr-1">
+                        {filteredYearlyGantiLiburList.map((item) => {
+                          const maxCount = filteredYearlyGantiLiburList[0]?.count || 1;
+                          const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                          return (
+                            <div key={item.id} className="space-y-0.5">
+                              <div className="flex justify-between items-center text-[10px]">
+                                <span className="font-semibold text-slate-700 truncate max-w-[85px]">{item.name}</span>
+                                <span className="font-bold text-slate-800 shrink-0">{item.count} hari</span>
+                              </div>
+                              <div className="w-full bg-slate-100 rounded-full h-1">
+                                <div
+                                  className="bg-amber-500 h-1 rounded-full transition-all duration-300"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
                             </div>
-                            <div className="w-full bg-slate-100 rounded-full h-1">
-                              <div
-                                className="bg-amber-500 h-1 rounded-full transition-all duration-300"
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="py-8 text-center text-[10px] text-slate-400 font-semibold">
+                        Tidak ada data.
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
