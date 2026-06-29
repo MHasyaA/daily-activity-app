@@ -69,8 +69,6 @@ function AdminOverviewContent() {
   }
 
   const [yearlyOvertime, setYearlyOvertime] = useState<YearlyOvertimeData[]>([]);
-  const [yearlyWfoList, setYearlyWfoList] = useState<YearlyLeaderboardItem[]>([]);
-  const [yearlyWfhList, setYearlyWfhList] = useState<YearlyLeaderboardItem[]>([]);
   const [yearlyGantiLiburList, setYearlyGantiLiburList] = useState<YearlyLeaderboardItem[]>([]);
   const [yearlyOvertimeLoading, setYearlyOvertimeLoading] = useState(true);
 
@@ -152,12 +150,6 @@ function AdminOverviewContent() {
       if (data.yearlyOvertime) {
         setYearlyOvertime(data.yearlyOvertime);
       }
-      if (data.wfoList) {
-        setYearlyWfoList(data.wfoList);
-      }
-      if (data.wfhList) {
-        setYearlyWfhList(data.wfhList);
-      }
       if (data.gantiLiburList) {
         setYearlyGantiLiburList(data.gantiLiburList);
       }
@@ -211,48 +203,91 @@ function AdminOverviewContent() {
     const currentMonthDays = days.filter(d => d.isCurrentMonth);
     const totalPossibleLogs = currentMonthDays.length * allUsers.length;
     let actualLoggedCount = 0;
+    let totalWfo = 0;
+    let totalWfh = 0;
+
+    // Initialize user counts
+    const userWfoMap: Record<string, number> = {};
+    const userWfhMap: Record<string, number> = {};
+
+    allUsers.forEach(u => {
+      userWfoMap[u.id] = 0;
+      userWfhMap[u.id] = 0;
+    });
 
     currentMonthDays.forEach(day => {
       actualLoggedCount += day.activities.length;
+      day.activities.forEach(act => {
+        if (act.status === 'WFO') {
+          totalWfo++;
+          if (userWfoMap[act.userId] !== undefined) userWfoMap[act.userId]++;
+        }
+        if (act.status === 'WFH') {
+          totalWfh++;
+          if (userWfhMap[act.userId] !== undefined) userWfhMap[act.userId]++;
+        }
+      });
     });
 
     const completionRate = totalPossibleLogs > 0 ? (actualLoggedCount / totalPossibleLogs) * 100 : 0;
 
+    const wfoList = allUsers.map(u => ({
+      id: u.id,
+      name: u.name,
+      division: u.division,
+      count: userWfoMap[u.id] || 0
+    }));
+
+    const wfhList = allUsers.map(u => ({
+      id: u.id,
+      name: u.name,
+      division: u.division,
+      count: userWfhMap[u.id] || 0
+    }));
+
     return {
       totalEmployees: allUsers.length,
       completionRate,
+      wfoCount: totalWfo,
+      wfhCount: totalWfh,
       actualLoggedCount,
-      totalPossibleLogs
+      totalPossibleLogs,
+      wfoList,
+      wfhList
     };
   }, [days, allUsers]);
+
+  const filteredMonthlyWfoList = useMemo(() => {
+    const list = division 
+      ? stats.wfoList.filter(item => item.division === division)
+      : stats.wfoList;
+    return [...list].sort((a, b) => b.count - a.count);
+  }, [stats.wfoList, division]);
+
+  const filteredMonthlyWfhList = useMemo(() => {
+    const list = division 
+      ? stats.wfhList.filter(item => item.division === division)
+      : stats.wfhList;
+    return [...list].sort((a, b) => b.count - a.count);
+  }, [stats.wfhList, division]);
+
+  const displayTotalMonthlyWfo = useMemo(() => {
+    return filteredMonthlyWfoList.reduce((acc, item) => acc + item.count, 0);
+  }, [filteredMonthlyWfoList]);
+
+  const displayTotalMonthlyWfh = useMemo(() => {
+    return filteredMonthlyWfhList.reduce((acc, item) => acc + item.count, 0);
+  }, [filteredMonthlyWfhList]);
 
   const filteredYearlyOvertime = useMemo(() => {
     if (!division) return yearlyOvertime;
     return yearlyOvertime.filter(item => item.division === division);
   }, [yearlyOvertime, division]);
 
-  const filteredYearlyWfoList = useMemo(() => {
-    if (!division) return yearlyWfoList;
-    return yearlyWfoList.filter(item => item.division === division);
-  }, [yearlyWfoList, division]);
-
-  const filteredYearlyWfhList = useMemo(() => {
-    if (!division) return yearlyWfhList;
-    return yearlyWfhList.filter(item => item.division === division);
-  }, [yearlyWfhList, division]);
-
   const filteredYearlyGantiLiburList = useMemo(() => {
     if (!division) return yearlyGantiLiburList;
     return yearlyGantiLiburList.filter(item => item.division === division);
   }, [yearlyGantiLiburList, division]);
-
-  const displayTotalWfo = useMemo(() => {
-    return filteredYearlyWfoList.reduce((acc, item) => acc + item.count, 0);
-  }, [filteredYearlyWfoList]);
-
-  const displayTotalWfh = useMemo(() => {
-    return filteredYearlyWfhList.reduce((acc, item) => acc + item.count, 0);
-  }, [filteredYearlyWfhList]);
 
   const displayTotalGantiLibur = useMemo(() => {
     return filteredYearlyGantiLiburList.reduce((acc, item) => acc + item.count, 0);
@@ -395,22 +430,22 @@ function AdminOverviewContent() {
                       <MapPin size={20} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFO (Tahun Ini)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFO (Bulan Ini)</p>
                       <h4 className="text-lg font-black text-slate-800 mt-0.5">
-                        {yearlyOvertimeLoading ? '...' : displayTotalWfo} <span className="text-xs font-bold text-slate-400">log</span>
+                        {loading ? '...' : displayTotalMonthlyWfo} <span className="text-xs font-bold text-slate-400">log</span>
                       </h4>
                     </div>
                   </div>
                   <div className="flex-1 mt-3 border-t border-slate-100 pt-2 overflow-hidden flex flex-col justify-start">
-                    {yearlyOvertimeLoading ? (
+                    {loading ? (
                       <div className="py-8 flex flex-col items-center justify-center text-slate-400">
                         <Loader2 className="animate-spin text-rose-500 mb-2" size={16} />
                         <span className="text-[10px] font-semibold">Memuat...</span>
                       </div>
-                    ) : filteredYearlyWfoList.length > 0 ? (
+                    ) : filteredMonthlyWfoList.length > 0 ? (
                       <div className="space-y-2 max-h-[110px] overflow-y-auto pr-1">
-                        {filteredYearlyWfoList.map((item) => {
-                          const maxCount = filteredYearlyWfoList[0]?.count || 1;
+                        {filteredMonthlyWfoList.map((item) => {
+                          const maxCount = filteredMonthlyWfoList[0]?.count || 1;
                           const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
                           return (
                             <div key={item.id} className="space-y-0.5">
@@ -443,22 +478,22 @@ function AdminOverviewContent() {
                       <Home size={20} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFH (Tahun Ini)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total WFH (Bulan Ini)</p>
                       <h4 className="text-lg font-black text-slate-800 mt-0.5">
-                        {yearlyOvertimeLoading ? '...' : displayTotalWfh} <span className="text-xs font-bold text-slate-400">log</span>
+                        {loading ? '...' : displayTotalMonthlyWfh} <span className="text-xs font-bold text-slate-400">log</span>
                       </h4>
                     </div>
                   </div>
                   <div className="flex-1 mt-3 border-t border-slate-100 pt-2 overflow-hidden flex flex-col justify-start">
-                    {yearlyOvertimeLoading ? (
+                    {loading ? (
                       <div className="py-8 flex flex-col items-center justify-center text-slate-400">
                         <Loader2 className="animate-spin text-rose-500 mb-2" size={16} />
                         <span className="text-[10px] font-semibold">Memuat...</span>
                       </div>
-                    ) : filteredYearlyWfhList.length > 0 ? (
+                    ) : filteredMonthlyWfhList.length > 0 ? (
                       <div className="space-y-2 max-h-[110px] overflow-y-auto pr-1">
-                        {filteredYearlyWfhList.map((item) => {
-                          const maxCount = filteredYearlyWfhList[0]?.count || 1;
+                        {filteredMonthlyWfhList.map((item) => {
+                          const maxCount = filteredMonthlyWfhList[0]?.count || 1;
                           const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
                           return (
                             <div key={item.id} className="space-y-0.5">
