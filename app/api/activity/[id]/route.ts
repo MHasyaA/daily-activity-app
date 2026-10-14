@@ -28,14 +28,16 @@ export async function PATCH(
     }
 
     const isOwner = existingActivity.userId === session.user.id;
-    const isManagerOrAdmin = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
+    const isAdmin = session.user.role === 'ADMIN';
+    const isManager = session.user.role === 'MANAGER';
+    const isManagerOrAdmin = isAdmin || isManager;
 
     if (!isOwner && !isManagerOrAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const dataToUpdate: Prisma.ActivityUpdateInput = {};
-    if (isOwner) {
+    if (isOwner || isAdmin) {
       if (status !== undefined) dataToUpdate.status = status;
       if (note !== undefined) dataToUpdate.note = note;
     }
@@ -86,7 +88,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Activity not found' }, { status: 404 });
     }
 
-    if (existingActivity.userId !== session.user.id) {
+    const isOwner = existingActivity.userId === session.user.id;
+    const isAdmin = session.user.role === 'ADMIN';
+
+    if (!isOwner && !isAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

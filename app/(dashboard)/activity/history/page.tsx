@@ -20,7 +20,7 @@ export default async function HistoryPage({
     redirect('/login');
   }
 
-  if (session.user.role === 'ADMIN') {
+  if (session.user.role === 'ADMIN' || session.user.role === 'MANAGER') {
     redirect('/admin/overview');
   }
 

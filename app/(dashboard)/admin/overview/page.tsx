@@ -715,35 +715,43 @@ function AdminOverviewContent() {
                           </div>
                         </div>
 
-                        {/* Status Badge */}
-                        {activity ? (
-                          activity.status === 'WFO' ? (
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-100">
-                              <MapPin size={10} />
-                              WFO
-                            </span>
-                          ) : activity.status === 'WFH' ? (
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                              <Home size={10} />
-                              WFH
-                            </span>
-                          ) : activity.status === 'GANTI_LIBUR' ? (
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-100">
-                              <Clock size={10} />
-                              Ganti Libur
-                            </span>
+                        {/* Status Badge & Action */}
+                        <div className="flex items-center gap-2 flex-wrap justify-end">
+                          <Link
+                            href={`/activity/${format(selectedDate, 'yyyy-MM-dd')}?userId=${user.id}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors"
+                          >
+                            Kelola Aktivitas
+                          </Link>
+                          {activity ? (
+                            activity.status === 'WFO' ? (
+                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-100">
+                                <MapPin size={10} />
+                                WFO
+                              </span>
+                            ) : activity.status === 'WFH' ? (
+                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                <Home size={10} />
+                                WFH
+                              </span>
+                            ) : activity.status === 'GANTI_LIBUR' ? (
+                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-100">
+                                <Clock size={10} />
+                                Ganti Libur
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200">
+                                <Palmtree size={10} />
+                                Libur
+                              </span>
+                            )
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200">
-                              <Palmtree size={10} />
-                              Libur
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200 animate-pulse">
+                              <AlertCircle size={10} />
+                              Belum Isi
                             </span>
-                          )
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200 animate-pulse">
-                            <AlertCircle size={10} />
-                            Belum Isi
-                          </span>
-                        )}
+                          )}
+                        </div>
                       </div>
 
                       {activity && activity.status !== 'LIBUR' && (hasPlan || hasActual) ? (

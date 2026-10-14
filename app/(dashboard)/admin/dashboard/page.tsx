@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { 
@@ -13,7 +14,8 @@ import {
   Calendar, 
   Filter, 
   CheckCircle,
-  Paperclip
+  Paperclip,
+  Edit3
 } from 'lucide-react';
 import Topbar from '@/components/layout/Topbar';
 import { calculateDuration, formatHours } from '@/lib/utils';
@@ -50,6 +52,9 @@ interface ReportRow {
 }
 
 export default function AdminDashboardPage() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === 'ADMIN';
+
   const [dateStr, setDateStr] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [division, setDivision] = useState('');
   const [loading, setLoading] = useState(true);
@@ -210,6 +215,7 @@ export default function AdminDashboardPage() {
                     <th className="px-6 py-4 text-center">Plan Jam</th>
                     <th className="px-6 py-4 text-center">Actual Jam</th>
                     <th className="px-6 py-4">Catatan Kendala</th>
+                    <th className="px-6 py-4 text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
@@ -295,6 +301,19 @@ export default function AdminDashboardPage() {
                               </div>
                             )}
                           </div>
+                        </td>
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
+                          <Link
+                            href={`/activity/${dateStr}?userId=${row.user.id}`}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                              isAdmin 
+                                ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200' 
+                                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+                            }`}
+                          >
+                            <Edit3 size={13} />
+                            {isAdmin ? 'Isi / Edit' : 'Detail'}
+                          </Link>
                         </td>
                       </tr>
                     );

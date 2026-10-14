@@ -29,7 +29,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Attachment not found' }, { status: 404 });
     }
 
-    if (attachment.activity.userId !== session.user.id) {
+    if (attachment.activity.userId !== session.user.id && session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

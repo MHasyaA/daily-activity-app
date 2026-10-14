@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Activity not found' }, { status: 404 });
     }
 
-    if (activity.userId !== session.user.id) {
+    if (activity.userId !== session.user.id && session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

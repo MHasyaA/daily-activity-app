@@ -16,7 +16,7 @@ import { id } from 'date-fns/locale';
 import Topbar from '@/components/layout/Topbar';
 import MonthCalendar, { CalendarDay } from '@/components/dashboard/MonthCalendar';
 import CategoryPieChart from '@/components/dashboard/CategoryPieChart';
-import { Calendar as CalendarIcon, MapPin, Home, CheckCircle2, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Home, CheckCircle2, Clock, Plus } from 'lucide-react';
 import { calculateDuration } from '@/lib/utils';
 import { isIndonesianHoliday, getHolidayInfo } from '@/lib/holidays';
 
@@ -279,15 +279,33 @@ export default async function DashboardPage({
           <div className="bg-rose-50 border border-rose-200 text-rose-800 px-6 py-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <p className="text-sm font-semibold">
-                Anda sedang melihat kalender aktivitas dari <strong>{targetUser.name}</strong>.
+                {session.user.role === 'ADMIN' ? (
+                  <>
+                    <span className="inline-block bg-rose-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-md mr-2">Mode Admin</span>
+                    Anda sedang mengelola kalender aktivitas <strong>{targetUser.name}</strong>. Anda dapat memilih tanggal di kalender atau klik tombol untuk mengisi/mengubah aktivitas.
+                  </>
+                ) : (
+                  <>Anda sedang melihat kalender aktivitas dari <strong>{targetUser.name}</strong>.</>
+                )}
               </p>
             </div>
-            <Link
-              href="/admin/dashboard"
-              className="text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl transition-all shadow-sm"
-            >
-              Kembali ke Dashboard Tim
-            </Link>
+            <div className="flex items-center gap-2 flex-wrap">
+              {session.user.role === 'ADMIN' && (
+                <Link
+                  href={`/activity/${format(new Date(), 'yyyy-MM-dd')}?userId=${targetUser.id}`}
+                  className="text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                >
+                  <Plus size={14} />
+                  Isi Aktivitas Hari Ini
+                </Link>
+              )}
+              <Link
+                href="/admin/dashboard"
+                className="text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl transition-all shadow-sm"
+              >
+                Kembali ke Dashboard Tim
+              </Link>
+            </div>
           </div>
         )}
         

@@ -53,6 +53,9 @@ export default function ActivityDetailPage() {
   const [managerNotes, setManagerNotes] = useState('');
 
   const isViewingOthers = !!userId && session?.user?.id !== userId;
+  const isAdmin = session?.user?.role === 'ADMIN';
+  const canEdit = !isViewingOthers || isAdmin;
+  const isReadOnly = !canEdit;
   
   // Modal Form States
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -117,6 +120,7 @@ export default function ActivityDetailPage() {
           date: dateStr,
           status: newStatus,
           note: note,
+          userId: userId || undefined,
         }),
       });
       const data = await res.json();
@@ -133,9 +137,28 @@ export default function ActivityDetailPage() {
 
   // Handle note save
   const handleSaveNote = useCallback(async () => {
-    if (!activity) return;
     setSaving(true);
     try {
+      if (!activity) {
+        if (!note) return;
+        const res = await fetch('/api/activity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: dateStr,
+            status: status || 'WFO',
+            note,
+            userId: userId || undefined,
+          }),
+        });
+        const data = await res.json();
+        if (data.activity) {
+          setActivity(data.activity);
+          setStatus(data.activity.status);
+        }
+        return;
+      }
+
       const res = await fetch(`/api/activity/${activity.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -150,18 +173,40 @@ export default function ActivityDetailPage() {
     } finally {
       setSaving(false);
     }
-  }, [activity, note]);
+  }, [activity, note, dateStr, status, userId]);
 
   // Handle adding an attachment
   const handleAddAttachment = async (base64Data: string) => {
-    if (!activity) return;
     setSaving(true);
     try {
+      let currentActivityId = activity?.id;
+      if (!currentActivityId) {
+        const createRes = await fetch('/api/activity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: dateStr,
+            status: status || 'WFO',
+            note: note,
+            userId: userId || undefined,
+          }),
+        });
+        const createData = await createRes.json();
+        if (createData.activity) {
+          currentActivityId = createData.activity.id;
+          setActivity(createData.activity);
+          setStatus(createData.activity.status);
+        } else {
+          alert('Gagal menginisialisasi aktivitas untuk lampiran.');
+          return;
+        }
+      }
+
       const res = await fetch('/api/activity/attachments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          activityId: activity.id,
+          activityId: currentActivityId,
           attachment: base64Data 
         }),
       });
@@ -320,6 +365,7 @@ export default function ActivityDetailPage() {
           date: dateStr,
           activityId: activity?.id,
           status: status || 'WFO', // fallback to init daily activity if not created yet
+          userId: userId || undefined,
         }),
       });
 
@@ -372,6 +418,7 @@ export default function ActivityDetailPage() {
             description: plan.description,
             category: plan.category,
             type: 'ACTUAL',
+            userId: userId || undefined,
           }),
         });
       });
@@ -402,7 +449,14 @@ export default function ActivityDetailPage() {
           <div className="bg-rose-50 border border-rose-200 text-rose-800 px-6 py-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <p className="text-sm font-semibold">
-                Anda sedang melihat detail aktivitas dari <strong>{targetUser.name}</strong>.
+                {isAdmin ? (
+                  <>
+                    <span className="inline-block bg-rose-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-md mr-2">Mode Admin</span>
+                    Anda sedang mengelola aktivitas untuk <strong>{targetUser.name}</strong>. Anda dapat mengisi kehadiran, rencana, realisasi, dan catatan.
+                  </>
+                ) : (
+                  <>Anda sedang melihat detail aktivitas dari <strong>{targetUser.name}</strong>.</>
+                )}
               </p>
             </div>
             <Link
@@ -466,7 +520,7 @@ export default function ActivityDetailPage() {
             <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
               Status Kehadiran Hari Ini
             </span>
-            {isViewingOthers ? (
+            {!canEdit ? (
               <div className="flex items-center gap-2">
                 {status === 'WFO' && (
                   <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
@@ -594,7 +648,7 @@ export default function ActivityDetailPage() {
                   setIsFormOpen(true);
                 }}
                 onDeleteItem={handleDeleteItem}
-                isReadOnly={isViewingOthers}
+                isReadOnly={isReadOnly}
               />
 
               {/* Actual Column */}
@@ -615,7 +669,7 @@ export default function ActivityDetailPage() {
                 onDeleteItem={handleDeleteItem}
                 onCopyFromPlanning={handleCopyFromPlanning}
                 showCopyOption={activity ? activity.planItems.length > 0 && activity.actualItems.length === 0 : false}
-                isReadOnly={isViewingOthers}
+                isReadOnly={isReadOnly}
               />
 
             </div>
@@ -626,7 +680,7 @@ export default function ActivityDetailPage() {
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Catatan Harian / Kendala Hari Ini
                 </label>
-                {!isViewingOthers && (
+                {canEdit && (
                   <span className={`text-[10px] font-bold ${note.length > 500 ? 'text-rose-500' : 'text-slate-400'}`}>
                     {note.length}/500
                   </span>
@@ -635,11 +689,11 @@ export default function ActivityDetailPage() {
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                onPaste={!isViewingOthers ? handlePaste : undefined}
-                placeholder={isViewingOthers ? "Tidak ada catatan" : "Tuliskan kendala, blocker, atau catatan penting hari ini..."}
+                onPaste={canEdit ? handlePaste : undefined}
+                placeholder={!canEdit ? "Tidak ada catatan" : "Tuliskan kendala, blocker, atau catatan penting hari ini..."}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-xl text-sm font-medium text-slate-700 outline-none transition-all min-h-[90px] max-h-[160px]"
                 maxLength={500}
-                disabled={isViewingOthers}
+                disabled={!canEdit}
               />
 
               {/* Attachment Section */}
@@ -666,7 +720,7 @@ export default function ActivityDetailPage() {
                             Buka
                           </div>
                         </a>
-                        {!isViewingOthers && (
+                        {canEdit && (
                           <button
                             type="button"
                             onClick={() => handleDeleteAttachment(att.id)}
@@ -681,7 +735,7 @@ export default function ActivityDetailPage() {
                 )}
 
                 {/* Upload Button */}
-                {!isViewingOthers && attachments.length < 5 && (
+                {canEdit && attachments.length < 5 && (
                   <div className="space-y-2 pt-1">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                       <label className="px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-250 hover:border-slate-350 text-slate-600 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm w-fit text-center">
@@ -701,7 +755,7 @@ export default function ActivityDetailPage() {
                   </div>
                 )}
 
-                {isViewingOthers && attachments.length === 0 && (
+                {!canEdit && attachments.length === 0 && (
                   <p className="text-xs text-slate-400 font-medium italic">Tidak ada lampiran gambar.</p>
                 )}
               </div>

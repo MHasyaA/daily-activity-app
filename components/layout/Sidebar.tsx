@@ -1,7 +1,8 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { 
   LayoutDashboard, 
@@ -14,15 +15,44 @@ import {
 
 import { useSidebar } from '@/components/providers';
 
+interface EmployeeItem {
+  id: string;
+  name: string;
+  email: string;
+  division: string | null;
+  role: string;
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const { isOpen, setIsOpen } = useSidebar();
+
+  const [employees, setEmployees] = useState<EmployeeItem[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
 
   const isAdmin = session?.user?.role === 'ADMIN';
   const isManagerOrAdmin = 
     isAdmin || 
     session?.user?.role === 'MANAGER';
+
+  const activeUserId = searchParams.get('userId');
+
+  useEffect(() => {
+    if (isManagerOrAdmin) {
+      setLoadingEmployees(true);
+      fetch('/api/admin/users?role=EMPLOYEE')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.users) {
+            setEmployees(data.users);
+          }
+        })
+        .catch((err) => console.error('Error fetching employees for sidebar:', err))
+        .finally(() => setLoadingEmployees(false));
+    }
+  }, [isManagerOrAdmin]);
 
   const menuItems = isManagerOrAdmin
     ? [
@@ -60,7 +90,7 @@ export default function Sidebar() {
           </h3>
           <ul className="space-y-1">
             {menuItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const isActive = (pathname === item.href || pathname.startsWith(item.href + '/')) && !activeUserId;
               const Icon = item.icon;
               return (
                 <li key={item.href}>
@@ -89,7 +119,7 @@ export default function Sidebar() {
             </h3>
             <ul className="space-y-1">
               {adminItems.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href && !activeUserId;
                 const Icon = item.icon;
                 return (
                   <li key={item.href}>
@@ -109,6 +139,42 @@ export default function Sidebar() {
                 );
               })}
             </ul>
+          </div>
+        )}
+
+        {/* Employee List Section */}
+        {isManagerOrAdmin && (
+          <div>
+            <h3 className="px-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              EMPLOYEE LIST
+            </h3>
+            {loadingEmployees ? (
+              <div className="px-3 py-2 text-xs text-slate-500">Memuat karyawan...</div>
+            ) : employees.length > 0 ? (
+              <ul className="space-y-1">
+                {employees.map((emp) => {
+                  const isEmployeeActive = activeUserId === emp.id;
+                  return (
+                    <li key={emp.id}>
+                      <Link
+                        href={`/dashboard?userId=${emp.id}`}
+                        onClick={() => setIsOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold tracking-wide uppercase transition-all duration-200 ${
+                          isEmployeeActive
+                            ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
+                            : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                        }`}
+                        title={`${emp.name} (${emp.division || 'Umum'})`}
+                      >
+                        <span className="truncate">{emp.name}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="px-3 py-2 text-xs text-slate-500">Belum ada data employee</div>
+            )}
           </div>
         )}
       </nav>

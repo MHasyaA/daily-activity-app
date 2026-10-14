@@ -18,11 +18,21 @@ export async function POST(req: NextRequest) {
       endTime, 
       description, 
       category, 
-      type 
+      type,
+      userId: targetUserIdParam
     } = await req.json();
 
     if (!startTime || !endTime || !description || !category || !type) {
       return NextResponse.json({ error: 'Missing required item fields' }, { status: 400 });
+    }
+
+    let targetUserId = session.user.id;
+    if (targetUserIdParam && targetUserIdParam !== session.user.id) {
+      if (session.user.role === 'ADMIN') {
+        targetUserId = targetUserIdParam;
+      } else {
+        return NextResponse.json({ error: 'Forbidden: Only admin can manage other employee items' }, { status: 403 });
+      }
     }
 
     let targetActivityId = activityId;
@@ -37,7 +47,7 @@ export async function POST(req: NextRequest) {
       const activity = await prisma.activity.upsert({
         where: {
           userId_date: {
-            userId: session.user.id,
+            userId: targetUserId,
             date: date,
           },
         },
@@ -45,7 +55,7 @@ export async function POST(req: NextRequest) {
           status,
         },
         create: {
-          userId: session.user.id,
+          userId: targetUserId,
           date: date,
           status,
         },
@@ -53,13 +63,17 @@ export async function POST(req: NextRequest) {
       targetActivityId = activity.id;
     }
 
-    // Double check that the activity belongs to the current user
+    // Double check that the activity belongs to the current user or user is ADMIN
     const dbActivity = await prisma.activity.findUnique({
       where: { id: targetActivityId },
     });
 
-    if (!dbActivity || dbActivity.userId !== session.user.id) {
-      return NextResponse.json({ error: 'Forbidden or Activity not found' }, { status: 403 });
+    if (!dbActivity) {
+      return NextResponse.json({ error: 'Activity not found' }, { status: 404 });
+    }
+
+    if (dbActivity.userId !== session.user.id && session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Create the ActivityItem

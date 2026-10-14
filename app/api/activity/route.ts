@@ -84,30 +84,39 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { date: dateParam, status, note } = await req.json();
+    const { date: dateParam, status, note, userId: targetUserIdParam } = await req.json();
 
     if (!dateParam || !status) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    let targetUserId = session.user.id;
+    if (targetUserIdParam && targetUserIdParam !== session.user.id) {
+      if (session.user.role === 'ADMIN') {
+        targetUserId = targetUserIdParam;
+      } else {
+        return NextResponse.json({ error: 'Forbidden: Only admin can manage other employee activities' }, { status: 403 });
+      }
     }
 
     const date = new Date(dateParam);
 
     const updateData: Prisma.ActivityUncheckedUpdateInput = {
       status,
-      note,
+      ...(note !== undefined && { note }),
     };
 
     const createData: Prisma.ActivityUncheckedCreateInput = {
-      userId: session.user.id,
+      userId: targetUserId,
       date: date,
       status,
-      note,
+      note: note || null,
     };
 
     const activity = await prisma.activity.upsert({
       where: {
         userId_date: {
-          userId: session.user.id,
+          userId: targetUserId,
           date: date,
         },
       },

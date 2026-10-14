@@ -31,7 +31,7 @@ export async function PATCH(
     }
 
     const parentActivity = item.planActivity || item.actualActivity;
-    if (!parentActivity || parentActivity.userId !== session.user.id) {
+    if (!parentActivity || (parentActivity.userId !== session.user.id && session.user.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -78,7 +78,7 @@ export async function DELETE(
     }
 
     const parentActivity = item.planActivity || item.actualActivity;
-    if (!parentActivity || parentActivity.userId !== session.user.id) {
+    if (!parentActivity || (parentActivity.userId !== session.user.id && session.user.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
